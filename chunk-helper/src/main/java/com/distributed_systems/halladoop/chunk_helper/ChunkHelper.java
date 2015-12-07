@@ -10,12 +10,15 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.distributed_systems.halladoop.chunk_helper.model.Block;
 import com.distributed_systems.halladoop.chunk_helper.model.ChunkData;
 import com.distributed_systems.halladoop.chunk_helper.model.ChunkIterator;
+
+import spark.Request;
 
 /**
  * Hello world!
@@ -62,8 +65,11 @@ public class ChunkHelper {
 		return response;
 	}
 
-//	public ChunkData processChunk(Request request){
-//		
-//	}
+	public ChunkData processChunk(Request request) throws JsonParseException, JsonMappingException, IOException{
+		ObjectMapper mapper = new ObjectMapper();
+		ChunkData data = mapper.readValue(request.bodyAsBytes(), ChunkData.class);
+		return data;
+	}
+	
 	// addChunk(ChunkData)
 }
