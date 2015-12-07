@@ -1,0 +1,1 @@
+# halladoop-namenode
