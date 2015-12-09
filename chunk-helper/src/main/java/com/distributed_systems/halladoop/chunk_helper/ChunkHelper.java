@@ -20,6 +20,8 @@ import com.distributed_systems.halladoop.chunk_helper.model.Block;
 import com.distributed_systems.halladoop.chunk_helper.model.ChunkData;
 import com.distributed_systems.halladoop.chunk_helper.model.ChunkIterator;
 
+import spark.Request;
+
 /**
  * Hello world!
  *
@@ -65,22 +67,9 @@ public class ChunkHelper {
 		return response;
 	}
 
-	public ChunkData processChunk(Request request){
-		ChunkData data = null;
+	public ChunkData processChunk(Request request) throws JsonParseException, JsonMappingException, IOException{
 		ObjectMapper mapper = new ObjectMapper();
-		try {
-			data = mapper.readValue(request.body(), ChunkData.class);
-			block.addChunk(data);
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ChunkData data = mapper.readValue(request.bodyAsBytes(), ChunkData.class);
 		return data;
 	}
 	// addChunk(ChunkData)
