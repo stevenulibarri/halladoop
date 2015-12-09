@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from serializers import RegistrationSerializer
+from namenode.serializers import RegistrationSerializer
 
 
 class API(APIView):
@@ -11,10 +11,10 @@ class API(APIView):
     """
 
     def post(self, request, format=None):
-        serializer = RegistrationSerializer(data=request.DATA)
+        serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            reg = serializer.save()
-            print(reg.nodeId)
+            reg = serializer.create(serializer.validated_data)
+            print(reg.nodeID)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

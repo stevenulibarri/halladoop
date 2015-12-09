@@ -1,13 +1,13 @@
-from models import Registration
-
 from rest_framework import serializers
+from namenode.models import Registration
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.Serializer):
 
-    class Meta:
-        model = Registration
-        fields = ('nodeId', 'nodeIP', 'totalDiskSpaceMb', 'availableDiskSpaceMB')
+    nodeID = serializers.IntegerField()
+    nodeIP = serializers.IPAddressField()
+    totalDiskSpaceMb = serializers.IntegerField()
+    availableDiskSpaceMB = serializers.IntegerField()
 
-        def create(self, validated_data):
-            return Registration(**validated_data)
+    def create(self, validated_data):
+        return Registration(**validated_data)
