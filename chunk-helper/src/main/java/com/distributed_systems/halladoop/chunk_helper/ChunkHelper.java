@@ -10,8 +10,11 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import spark.Request;
 
 import com.distributed_systems.halladoop.chunk_helper.model.Block;
 import com.distributed_systems.halladoop.chunk_helper.model.ChunkData;
@@ -24,17 +27,17 @@ import com.distributed_systems.halladoop.chunk_helper.model.ChunkIterator;
 public class ChunkHelper {
 	private int fileSize;
 	private Block block;
-	private final int FOUR_KILOBYTES = 1024 * 4;
 
 	public ChunkHelper(int fileSize) {
 		this.fileSize = fileSize;
-		int totalChunks = fileSize / FOUR_KILOBYTES;
-		if (fileSize % FOUR_KILOBYTES != 0) {
-			totalChunks++;
-		}
-		block = new Block(totalChunks);
+		block = new Block(fileSize);
 	}
 
+	public ChunkHelper(int fileSize, byte[] data){
+		this(fileSize);
+		block.setData(data);
+	}
+	
 	 public Iterator<ChunkData> getChunks(Block block) {
 		 return new ChunkIterator(block);
 	 }
@@ -62,8 +65,33 @@ public class ChunkHelper {
 		return response;
 	}
 
-//	public ChunkData processChunk(Request request){
-//		
-//	}
+	public ChunkData processChunk(Request request){
+		ChunkData data = null;
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			data = mapper.readValue(request.body(), ChunkData.class);
+			block.addChunk(data);
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return data;
+	}
 	// addChunk(ChunkData)
+	public void addChunk(ChunkData chunk){
+		block.addChunk(chunk);
+	}
+	
+	public byte[] getData(){
+		if(block.getData() != null && block.getData().length != 0){
+			return block.getData();
+		}
+		throw new RuntimeException("No data in the block. Incomplete transfer.");
+	}
 }
