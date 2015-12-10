@@ -13,16 +13,16 @@ class VirtualFileSystem:
         self.root_inode = INode(config.DELIMITER, is_directory=True)
         self.data_nodes = {}
 
-    def add_file(self, file_path):
+    def add_file(self, file_path): #TODO recursive
         inode = self.__add_inode__(file_path) 
 
     def add_directory(self, file_path):
         self.__add_inode__(file_path)
 
-    def add_data_pointer_to_file(self, file_path, file_block_num, data_node_id):
+    def add_block_entry(self, file_path, file_block_num, data_node_id):
         inode = self.__get_inode__(file_path)
         if inode and not inode.is_directory:
-            inode.add_pointer_from_data(file_block_num)
+            inode.add_pointer(file_block_num, data_node_id)
             self.__add_data_node_entry__(data_node_id, file_path, file_block_num)
         else:
             raise ValueError("INode at " + file_path + " either doesn't exist or isn't a file INODE")
@@ -30,9 +30,9 @@ class VirtualFileSystem:
     def get_files_for_data_node(self, data_node_id):
         return self.data_nodes[data_node_id]
 
+    #TODO fix
     def __add_data_node_entry__(self, data_node_id, file_path, file_block_num):
-        data_node_entries = self.data_nodes[data_node_id]
-        if not data_node_entries:
+        if data_node_id not in self.data_nodes:
             data_node_entries = {}
             self.data_nodes[data_node_id] = data_node_entries
 
@@ -103,21 +103,13 @@ class INode:
         return cls(file_name, {})
 
     def add_pointer(self, pointer_key, pointer_value):
-        pointer = self.pointers[pointer_key]
-        if not pointer:
+        if pointer_key in self.pointers:
+            if not self.is_directory:
+                pointer = self.pointers[pointer_key]
+                pointer.append(pointer_value)
+        else:
             if self.is_directory:
                 self.pointers[pointer_key] = pointer_value
             else:
-                pointer = BlockPointer()
+                pointer = [pointer_value]
                 self.pointers[pointer_key] = pointer
-                pointer.add_pointer(pointer_value)
-        else:
-            if not self.is_directory:
-                pointer.add_pointer(pointer_value)
-
-class BlockPointer:
-    def __init__(self):
-        self.data_pointers = []
-
-    def add_pointer(self, data_node_id):
-        self.data_pointers.append(data_node_id)
