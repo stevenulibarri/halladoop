@@ -13,7 +13,38 @@ class VirtualFileSystem:
         self.root_inode = INode(config.DELIMITER, is_directory=True)
         self.data_nodes = {}
 
-    def get_inode(self, file_path):
+    def add_file(self, file_path):
+        inode = self.__add_inode__(file_path) 
+
+    def add_directory(self, file_path):
+        self.__add_inode__(file_path)
+
+    def add_data_pointer_to_file(self, file_path, file_block_num, data_node_id):
+        inode = self.__get_inode__(file_path)
+        if inode and not inode.is_directory:
+            inode.add_pointer_from_data(file_block_num)
+            self.__add_data_node_entry__(data_node_id, file_path, file_block_num)
+        else:
+            raise ValueError("INode at " + file_path + " either doesn't exist or isn't a file INODE")
+
+    def get_files_for_data_node(self, data_node_id):
+        return self.data_nodes[data_node_id]
+
+    def __add_data_node_entry__(self, data_node_id, file_path, file_block_num):
+        data_node_entries = self.data_nodes[data_node_id]
+        if not data_node_entries:
+            data_node_entries = {}
+            self.data_nodes[data_node_id] = data_node_entries
+
+        file_block_nums = data_nodes_entries[file_path]
+        if not file_block_nums:
+            file_block_nums = []
+            data_node_entries[file_path] = file_block_nums
+
+        if file_block_num not in file_block_nums:
+            file_block_nums.append(file_block_num)
+
+    def __get_inode__(self, file_path):
         current_node = self.root_inode
         dirs = list(filter(('').__ne__, file_path.split(config.DELIMITER)))
         for dir_name in dirs:
@@ -27,31 +58,21 @@ class VirtualFileSystem:
 
         return current_node
 
-    def get_inodes_for_data_node(self, data_node_id):
-        return self.data_nodes[data_node_id]
-
-    def add_inode(self, file_path):
+    def __add_inode__(self, file_path): #TODO make recursively add if parent dirs don't exist
         parent_inode = self.__parentinode__(file_path)
         self.__check_parent_inode__(parent_inode)
 
         inode = INode.fromFileName(self.__filename__(file_path))
         
-        parent_inode.add_pointer(inode_pointer)
+        parent_inode.add_pointer(inode.file_name, inode)
         return inode
         
-    #TODO add nodes to data_nodes dict if necessary
-    def add_file(self, file_path):
-        inode = self.add_inode(file_path) 
-
-    def add_directory(self, file_path):
-        self.add_inode(file_path)
-
     def __filename__(self, file_path):
         return file_path.split(config.DELIMITER)[-1]
 
     def __parentinode__(self, file_path):
         parent_path = self.__parentpath__(file_path)
-        return self.get_inode(parent_path)
+        return self.__get_inode__(parent_path)
 
     def __parentpath__(self, file_path):
         parent_dirs = [self.root_inode.file_name]
@@ -81,25 +102,22 @@ class INode:
     def fromFileName(cls, file_name):
         return cls(file_name, {})
 
-    def add_pointer_from_data(self, file_block_num, data_node_id, data_node_block_id):
-        data_node_pointer = DataNodePointer(data_node_id, data_node_block_id)
+    def add_pointer(self, pointer_key, pointer_value):
+        pointer = self.pointers[pointer_key]
+        if not pointer:
+            if self.is_directory:
+                self.pointers[pointer_key] = pointer_value
+            else:
+                pointer = BlockPointer()
+                self.pointers[pointer_key] = pointer
+                pointer.add_pointer(pointer_value)
+        else:
+            if not self.is_directory:
+                pointer.add_pointer(pointer_value)
 
-        file_block = self.pointers[file_block_num]
-        if not file_block:
-            file_block = FileBlock()
-            self.pointers[file_block_num] = file_block
-
-        file_block.add_pointer(data_node_pointer)
-
-class FileBlock:
+class BlockPointer:
     def __init__(self):
         self.data_pointers = []
 
-    def add_pointer(self, data_node_pointer):
-        self.data_pointers.append(data_node_pointer)
-
-# "Points" to the data on a data node
-class DataNodePointer:
-    def __init__(self, data_node_id, block_id):
-        self.data_node_id = data_node_id
-        self.block_id = block_id
+    def add_pointer(self, data_node_id):
+        self.data_pointers.append(data_node_id)
