@@ -11,7 +11,7 @@ public class Block {
 	private final int FOUR_KILOBYTES = 1024 * 4;
 
 
-	public Block(int fileSize){
+	public Block(int fileSize){		
 		int totalChunks = fileSize / FOUR_KILOBYTES;
 		if (fileSize % FOUR_KILOBYTES != 0) {
 			totalChunks++;
