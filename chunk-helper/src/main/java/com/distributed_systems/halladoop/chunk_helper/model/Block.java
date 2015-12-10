@@ -22,7 +22,7 @@ public class Block {
 	}
 
 	public Block(int fileSize, byte[] data){
-
+		this(fileSize);
 		this.data = data;
 	}
 	
