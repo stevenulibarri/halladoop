@@ -1,6 +1,22 @@
 package com.distributed_systems.halladoop.dataNode;
 
-import spark.Spark;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import com.distributed_systems.halladoop.dataNode.model.RegisterInfo;
 
 
 /**
@@ -9,21 +25,62 @@ import spark.Spark;
  */
 public class App 
 {
+	private static ObjectMapper mapper = new ObjectMapper();
+	public final String nameNode = "";
+	private static Map<String, String> files = new HashMap<String, String>();
+	private static String corePath;
+	private static String nodeID;
+	
     public static void main( String[] args )
     {
-    	DataNodeApi api = new DataNodeApi();
-    	
-    	Spark.post("/beginwrite", (request, response) -> api.initializeResponse(request, response));
-    	
-        Spark.post("/read", (request, response) -> api.readFile(request, response));
-        
-		Spark.post("/write", (request, response) -> api.writeFile(request, response));
-		
-		
+    	corePath = "/"; //Get from command arg
+    	String ip = "127.0.0.1"; //Also get from command args to circumvent complicated ip issues
+		try(ServerSocket server = new ServerSocket(4568)){
+			HttpClient client = HttpClients.createDefault();
+			File everything = new File(corePath);
+			RegisterInfo registerInfo = new RegisterInfo(ip, everything.getTotalSpace(), everything.getUsableSpace());
+			HttpPost post = new HttpPost();
+			HttpEntity entity = new StringEntity(mapper.writeValueAsString(registerInfo));
+			post.setEntity(entity);
+			client.execute(post);
+			while(true){
+				Socket socket = server.accept();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     public static void processBytes(byte[] bytes){
     	
+    }
+    
+    public static Map<String, String> getFiles(){
+    	return files;
+    }
+    
+    public static String getCorePath(){
+    	return corePath;
+    }
+    
+    public static String getId(){
+    	return nodeID;
+    }
+    
+    public static void deleteFile(String blockId){
+    	
+    }
+    
+    public static boolean replicateFile(String blockId, String nodeIp, int nodePort){
+    	try {
+			Socket socket = new Socket(nodeIp, nodePort);
+			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return false;
     }
     // /packet(){http request() -> block ID, Raw Data, PipelineNode, Packet #/Total}
 }

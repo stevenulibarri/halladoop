@@ -78,9 +78,6 @@ public class ChunkHelper {
 	}
 	
 	public byte[] getData(){
-		if(block.getData() != null && block.getData().length != 0){
-			return block.getData();
-		}
-		throw new RuntimeException("No data in the block. Incomplete transfer.");
+		return (block.getData() != null && block.getData().length != 0) ? block.getData() : null;
 	}
 }
