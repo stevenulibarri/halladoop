@@ -8,7 +8,7 @@ from namenode.requesthandlers import requesthandlers
 class Registration(APIView):
 
     def post(self, request, format=None):
-        try:
+        # try:
             serializer = serializers.RegistrationRequestSerializer(data=request.data)
             if serializer.is_valid():
                 reg = serializer.create(serializer.validated_data)
@@ -16,14 +16,14 @@ class Registration(APIView):
                 deserializer = serializers.RegistrationResponseSerializer(resp)
                 return Response(deserializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            pass
+        # except:
+            # pass
 
 
 class Heartbeat(APIView):
 
     def post(self, request, format=None):
-        try:
+        # try:
             serializer = serializers.HeartbeatSerializer(data=request.data)
             if serializer.is_valid():
                 heartbeat = serializer.create(serializer.validated_data)
@@ -31,28 +31,28 @@ class Heartbeat(APIView):
                 deserializer = serializers.HeartbeatResponseSerializer(resp)
                 return Response(deserializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            pass
+        # except:
+        #     pass
 
 
 class Finalize(APIView):
 
     def post(self, request, format=None):
-        try:
+        # try:
             serializer = serializers.FinalizeRequestSerializer(data=request.data)
             if serializer.is_valid():
                 finalize_request = serializer.create(serializer.validated_data)
                 requesthandlers.handle_finalize(finalize_request)
                 return Response(status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            pass
+        # except:
+        #     pass
 
 
 class File(APIView):
 
     def post(self, request, format=None):
-        try:
+        # try:
             serializer = serializers.WriteRequestSerializer(data=request.data)
             if serializer.is_valid():
                 write_request = serializer.create(serializer.validated_data)
@@ -60,20 +60,28 @@ class File(APIView):
                 deserializer = serializers.WriteResponseSerializer(resp)
                 return Response(deserializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except:
-            pass
+        # except:
+        #     pass
 
     def get(self, request, format=None):
-        try:
+        # try:
             resp = requesthandlers.handle_read(request.path)
             deserializer = serializers.ReadResponseSerializer(resp)
             return Response(deserializer.data, status=status.HTTP_200_OK)
-        except:
-            pass
+        # except:
+        #     pass
 
     def delete(self, request, format=None):
-        try:
+        # try:
             requesthandlers.handle_delete(request.path)
             return Response(status=status.HTTP_200_OK)
-        except:
-            pass
+        # except:
+        #     pass
+
+
+class Cluster(APIView):
+
+    def get(self, request, format=None):
+        resp = requesthandlers.cluster_query()
+        deserializer = serializers.NodeManagerResponseSerializer(resp)
+        return Response(deserializer.data, status=status.HTTP_200_OK)
