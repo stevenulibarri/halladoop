@@ -2,9 +2,11 @@ from namenode.models import responsemodels
 from namenode.nodemanager import nodemanager
 from namenode.image.virtualfilesystem import VirtualFileSystem
 from namenode.image import manifestcomparator as manifests
+from namenode.image.buffer import ActionBuffer
 
 node_manager = nodemanager.NodeManager()
 vfs = VirtualFileSystem()
+buffer = ActionBuffer()
 
 def handle_register(registration_request):
     node_ip = registration_request.node_ip
@@ -15,7 +17,7 @@ def handle_register(registration_request):
 
     return responsemodels.RegistrationResponse(new_id)
 
-
+#TODO remove from buffer if data node has deleted something
 def handle_heartbeat(heartbeat):
     node_id = heartbeat.node_id
     available_disk_space_mb = heartbeat.available_disk_space_mb
@@ -23,19 +25,36 @@ def handle_heartbeat(heartbeat):
 
     node_manager.update_node(node_id, available_disk_space_mb)
 
-    #Check block_manifest against VFS
     datanode_mismatch_blocks, vfs_mismatch_blocks = manifests.check_match(node_manifest, vfs.get_blocks_for_node(node_id))
     print("Datanode mismatch blocks " + str(datanode_mismatch_blocks))
     print("VFS mismatch blocks " + str(vfs_mismatch_blocks))
-    #if node has blocks that VFS doesn't
-    #        add to delete response
-    #        add delete to in progress buffer
-    #if vfs has blocks that vfs doesn't
-    #    check in progress buffer, if not in buffer
-    #        add to replicate response
-    #        add replicate to progress buffer
 
-    return responsemodels.HeartbeatResponse(["1", "2", "3"], [{"block_id": "123", "nodes": ["1.2.3.4"]}])
+    delete_response_blocks = []
+    replicate_response_blocks = []
+
+    for mismatched_block in datanode_mismatch_blocks:
+        if buffer.block_exists(node_id, mismatched_block, buffer.deletes_in_progress):
+            block_entry_time = buffer.deletes_in_progress[node_id][mismatched_block].time_issued
+            print("Time delete was issued for block " + mismatched_block + " on node " + node_id + ": " + block_entry_time)
+        else:
+            print("Block " + mismatched_block + " needs to be deleted in node " + node_id)
+            buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_deletes)
+            buffer.add(node_id, mismatched_block, buffer.deletes_in_progress)
+            delete_response_blocks.append(mismatched_block)
+
+    for mismatched_block in vfs_mismatch_blocks:
+        if buffer.block_exists(node_id, mismatched_block, buffer.replications_in_progress):
+            block_entry_time = buffer.replications_in_progress[node_id][mismatched_block].time_issued
+            print("Time replicate was issued for block " + mismatched_block + " on node " + node_id + ": " + block_entry_time)
+        else:
+            print("Block " + mismatched_block + " needs to be replicated in node " + node_id)
+            buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_replications)
+            buffer.add(node_id, mismatched_block, buffer.replications_in_progress)
+            replicate_response_blocks.append(mismatched_block)
+
+    #TODO add any other replications that might need to happen
+
+    return responsemodels.HeartbeatResponse(delete_response_blocks, [{"block_id": "123", "nodes": ["1.2.3.4"]}])
 
 
 def handle_finalize(finalize_request):

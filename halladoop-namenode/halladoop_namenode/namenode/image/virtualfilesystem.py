@@ -3,12 +3,11 @@ Represents the "journal" of a filesystem similarly to what you'd expect int an e
 #TODO
   - timestamps
 """
-import logging
-from threading import Lock
+from threading import RLock
 
 from namenode.image import config
 
-lock = Lock()
+lock = RLock()
 
 class VirtualFileSystem:
     def __init__(self):
@@ -23,6 +22,7 @@ class VirtualFileSystem:
 
     def __add_inode__(self, file_path, is_directory):
         with (yield from lock):
+            print("made it")
             parent_inode = self.__parentinode__(file_path)
             if not parent_inode:
                 self.add_directory(self.__parentpath__(file_path))
@@ -50,24 +50,40 @@ class VirtualFileSystem:
         lock.release()
         return self.data_nodes[data_node_id]
 
+    def get_nodes_for_block(self, block_id):
+        file_path, block_num = self.parse_block_id(block_id)
+        inode = self.__get_inode__(file_path)
+
+        nodes_with_block = set()
+        if inode and block_num in inode.pointers:
+            nodes_with_block.update(inode.pointers[block_num])
+
+        return nodes_with_block
+
+    def parse_block_id(self, block_id):
+        file_name = block_id.split(config.DELIMITER)[-1]
+        number_string = ""
+        for char in reversed(file_name):
+            if char.isdigit():
+                number_string.append(char)
+            else:
+                break
+        return int(reversed(number_string))
+
     def file_exists(self, file_path):
         return self.__get_inode__(file_path) is not None
 
     def __add_data_node_entry__(self, data_node_id, file_path, file_block_num):
         if data_node_id not in self.data_nodes:
-            data_node_entries = {}
+            data_node_entries = set()
             self.data_nodes[data_node_id] = data_node_entries
         else:
             data_node_entries = self.data_nodes[data_node_id]
 
-        if file_path not in data_node_entries:
-            file_block_nums = []
-            data_node_entries[file_path] = file_block_nums
-        else:
-            file_block_nums = data_node_entries[file_path]
+        block_id = file_path + str(file_block_num)
 
-        if file_block_num not in file_block_nums:
-            file_block_nums.append(file_block_num)
+        if block_id not in data_node_entries:
+            data_node_entries.add(block_id)
 
     def __get_inode__(self, file_path):
         lock.acquire()
