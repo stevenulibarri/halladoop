@@ -1,10 +1,12 @@
 package com.distributed_systems.halladoop.io;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+
+import com.distributed_systems.halladoop.dataNode.model.Operation;
+import com.distributed_systems.halladoop.dataNode.model.ReadData;
 
 public class BlockReader implements Runnable {
 	private Socket socket;
@@ -16,10 +18,11 @@ public class BlockReader implements Runnable {
 	public void run() {
 		try {
 			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			Operation op = (Operation) inputStream.readObject();
 			switch(op){
 			case READ:
+				ReadData data = (ReadData) inputStream.readObject();
+				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 				break;
 			case WRITE:
 				break;
