@@ -1,16 +1,15 @@
 package com.distributed_systems.halladoop.dataNode.model;
 
-public class InitializeData {
-
-	private int fileSize;
+public class WriteData {
+	private byte[] data;
 	private String blockId;
 
-	public int getFileSize() {
-		return fileSize;
+	public byte[] getData() {
+		return data;
 	}
 
-	public void setFileSize(int fileSize) {
-		this.fileSize = fileSize;
+	public void setData(byte[] data) {
+		this.data = data;
 	}
 
 	public String getBlockId() {
@@ -20,7 +19,4 @@ public class InitializeData {
 	public void setBlockId(String blockId) {
 		this.blockId = blockId;
 	}
-	
-	
-	
 }
