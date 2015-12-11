@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -25,6 +26,7 @@ import com.distributed_systems.halladoop.dataNode.model.ReadData;
 import com.distributed_systems.halladoop.dataNode.model.RegisterInfo;
 import com.distributed_systems.halladoop.dataNode.model.RegisterResponse;
 import com.distributed_systems.halladoop.dataNode.model.WriteData;
+import com.distributed_systems.halladoop.io.BlockReader;
 
 
 /**
@@ -35,6 +37,7 @@ public class App
 {
 	private static ObjectMapper mapper = new ObjectMapper();
 	public final String nameNode = "";
+	private static String endpoint = "127.0.0.1";
 	private static Map<String, String> files = new HashMap<String, String>();
 	private static String corePath;
 	private static String nodeID;
@@ -52,14 +55,18 @@ public class App
 			HttpClient client = HttpClients.createDefault();
 			File everything = new File(corePath);
 			RegisterInfo registerInfo = new RegisterInfo(ip, everything.getTotalSpace(), everything.getUsableSpace());
-			HttpPost post = new HttpPost();
+			HttpPost post = new HttpPost(endpoint);
 			HttpEntity entity = new StringEntity(mapper.writeValueAsString(registerInfo));
 			post.setEntity(entity);
 			HttpResponse response = client.execute(post);
 			RegisterResponse rr = mapper.readValue(response.getEntity().getContent(), RegisterResponse.class);
 			nodeID = rr.getNodeID();
+			Timer timer = new Timer();
+			timer.schedule(new HeartBeatTask(), 0, 60000);
 			while(true){
 				Socket socket = server.accept();
+				Thread t = new Thread(new BlockReader(socket));
+				t.start();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
