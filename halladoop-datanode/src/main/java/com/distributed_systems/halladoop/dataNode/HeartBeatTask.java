@@ -31,7 +31,8 @@ public class HeartBeatTask extends TimerTask{
 		HttpPost post = new HttpPost();
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			HttpEntity entity = new StringEntity(mapper.writeValueAsString(info));
+			String a = mapper.writeValueAsString(info);
+			HttpEntity entity = new StringEntity(a);
 			post.setEntity(entity);
 			HttpResponse response = client.execute(post);
 			HeartbeatResponse heartbeat =  mapper.readValue(response.getEntity().getContent(), HeartbeatResponse.class);

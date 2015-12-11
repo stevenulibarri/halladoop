@@ -7,7 +7,7 @@ import java.io.*;
  */
 public class driver {
     public static void main(String[] args) throws IOException {
-        File file = new File("/home/devin/gentoo_root.img");
+        File file = new File("C:\\test\\file-1.bin");
 
         HalladoopClient client = new HalladoopClient("104.236.162.28", 8080);
         client.write(file);

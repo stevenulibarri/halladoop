@@ -2,8 +2,9 @@ package com.distributed_systems.halladoop.client.workers;
 
 import com.distributed_systems.halladoop.client.data.Operation;
 import com.distributed_systems.halladoop.client.data.WriteData;
-
 import com.distributed_systems.halladoop.client.data.WriteException;
+import com.distributed_systems.halladoop.client.data.WriteResponse;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -25,7 +26,7 @@ import static com.distributed_systems.halladoop.client.utils.FileUtils.createBlo
  * Created by devin on 12/8/15.
  */
 public class WriteWorker implements Runnable {
-    private static final String WRITE = "/write";
+    private static final String WRITE = "/write/";
     private static final int DATA_NODE_PORT = 4567;
     private static final String FINALIZE = "/finalize" ;
 
@@ -46,23 +47,23 @@ public class WriteWorker implements Runnable {
         URIBuilder uriBuilder = new URIBuilder();
 
         try {
-            URI uri = uriBuilder.setHost(host).setPort(port).setPath(WRITE).build();
+            URI uri = uriBuilder.setScheme("http").setHost(host).setPort(port).setPath(WRITE).build();
             HttpPost writePayload = new HttpPost(uri);
             writePayload.addHeader("Content-Type", "application/json");
 
             List<WriteData> blocks = createBlocks(file);
 
             StringEntity entity = new StringEntity("{" +
-                    "\"path\": \"" + file.getName() + "\","
-                    + "\"numBlocks\": \"" + blocks.size()
+                    "\"file_path\": \"" + file.getName() + "\","
+                    + "\"num_blocks\": \"" + blocks.size()
                     + "\"}");
 
             writePayload.setEntity(entity);
             CloseableHttpResponse response = client.execute(writePayload);
             int responseCode = response.getStatusLine().getStatusCode();
 
-            if (responseCode == 200) {
-                String[] dataNodes = mapper.readValue(response.getEntity().getContent(), String[].class);
+            if (responseCode >= 200 && responseCode < 300) {
+                String[] dataNodes = mapper.readValue(response.getEntity().getContent(), WriteResponse.class).getNodes();
 
                 for (String ip : dataNodes) {
                     Socket connection = new Socket(ip, DATA_NODE_PORT);
@@ -94,11 +95,13 @@ public class WriteWorker implements Runnable {
                             dataNodeFinalize = false;
                         }
                     }
+                    connection.close();
                 }
             } else {
                 throw new WriteException("Server responded with: " + response);
             }
         } catch (IOException e) {
+        	e.printStackTrace();
             throw new WriteException("The file " + file.getName()
                     + " was not written due to: \n" + e.getMessage());
         } catch (URISyntaxException e) {

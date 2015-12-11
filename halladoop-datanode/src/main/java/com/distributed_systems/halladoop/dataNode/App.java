@@ -38,7 +38,7 @@ public class App
 {
 	private static ObjectMapper mapper = new ObjectMapper();
 	public final String nameNode = "";
-	private static String endpoint = "127.0.0.1";
+	private static String endpoint = "http://104.236.162.28:8080/";
 	private static Map<String, String> files = new HashMap<String, String>();
 	private static String corePath;
 	private static String nodeID;
@@ -55,9 +55,13 @@ public class App
 		try(ServerSocket server = new ServerSocket(4567)){
 			HttpClient client = HttpClients.createDefault();
 			File everything = new File(corePath);
-			RegisterInfo registerInfo = new RegisterInfo(ip, everything.getTotalSpace(), everything.getUsableSpace());
-			HttpPost post = new HttpPost(endpoint);
-			HttpEntity entity = new StringEntity(mapper.writeValueAsString(registerInfo));
+			RegisterInfo registerInfo = new RegisterInfo();
+			registerInfo.setNode_ip(ip);
+			registerInfo.setAvailable_disk_space_mb(everything.getUsableSpace() / 1024 / 1024);
+			registerInfo.setTotal_disk_space_mb(everything.getTotalSpace() / 1024 / 1024);
+			HttpPost post = new HttpPost(endpoint + "register/");
+			StringEntity entity = new StringEntity(mapper.writeValueAsString(registerInfo));
+			entity.setContentType("application/json");
 			post.setEntity(entity);
 			HttpResponse response = client.execute(post);
 			RegisterResponse rr = mapper.readValue(response.getEntity().getContent(), RegisterResponse.class);
