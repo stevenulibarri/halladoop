@@ -48,7 +48,7 @@ class VirtualFileSystem:
     def get_blocks_for_node(self, data_node_id):
         lock.acquire()
         lock.release()
-        blocks = {}
+        blocks = set()
 
         if data_node_id in self.data_nodes:
             blocks = self.data_nodes[data_node_id]
