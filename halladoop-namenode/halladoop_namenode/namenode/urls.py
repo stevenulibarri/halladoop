@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'^finalize/$', views.Finalize.as_view()),
     url(r'^write/$', views.File.as_view()),
     url(r'^read/', views.File.as_view()),
-    url(r'^delete/', views.File.as_view())
+    url(r'^delete/', views.File.as_view()),
+    url(r'^cluster_status/$', views.Cluster.as_view())
 ]

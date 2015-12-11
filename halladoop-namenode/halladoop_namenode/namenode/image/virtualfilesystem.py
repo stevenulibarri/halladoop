@@ -2,15 +2,12 @@
 Represents the "journal" of a filesystem similarly to what you'd expect int an ext# filesystem
 #TODO
   - timestamps
-  - implement a buffer for adding an entry
-  - implement some sort of time mechanism to assist heartbeats, if applicable
-  - optimization of data structure (which I'm sure is possible)
 """
-from threading import Lock
+from threading import RLock
 
-import config
+from namenode.image import config
 
-lock = Lock()
+lock = RLock()
 
 class VirtualFileSystem:
     def __init__(self):
@@ -24,10 +21,10 @@ class VirtualFileSystem:
         self.__add_inode__(file_path, True)
 
     def __add_inode__(self, file_path, is_directory):
-        with (yield from lock):
+        with lock.acquire():
+            print("made it")
             parent_inode = self.__parentinode__(file_path)
             if not parent_inode:
-                parent_path = self.__parentpath__(file_path)
                 self.add_directory(self.__parentpath__(file_path))
                 parent_inode = self.__parentinode__(file_path)
             else:
@@ -40,7 +37,7 @@ class VirtualFileSystem:
 
     def add_block_entry(self, file_path, file_block_num, data_node_id):
         lock.acquire()
-        with (yield from lock):
+        with lock.acquire():
             inode = self.__get_inode__(file_path)
             if inode and not inode.is_directory:
                 inode.add_pointer(file_block_num, data_node_id)
@@ -51,26 +48,47 @@ class VirtualFileSystem:
     def get_blocks_for_node(self, data_node_id):
         lock.acquire()
         lock.release()
-        return self.data_nodes[data_node_id]
+        blocks = set()
+
+        if data_node_id in self.data_nodes:
+            blocks = self.data_nodes[data_node_id]
+
+        return blocks
+
+    def get_nodes_for_block(self, block_id):
+        file_path, block_num = self.parse_block_id(block_id)
+        inode = self.__get_inode__(file_path)
+
+        nodes_with_block = set()
+        if inode and block_num in inode.pointers:
+            nodes_with_block.update(inode.pointers[block_num])
+
+        return nodes_with_block
+
+    def parse_block_id(self, block_id):
+        file_name = block_id.split(config.DELIMITER)[-1]
+        number_string = ""
+        for char in reversed(file_name):
+            if char.isdigit():
+                number_string.append(char)
+            else:
+                break
+        return int(reversed(number_string))
 
     def file_exists(self, file_path):
         return self.__get_inode__(file_path) is not None
 
     def __add_data_node_entry__(self, data_node_id, file_path, file_block_num):
         if data_node_id not in self.data_nodes:
-            data_node_entries = {}
+            data_node_entries = set()
             self.data_nodes[data_node_id] = data_node_entries
         else:
             data_node_entries = self.data_nodes[data_node_id]
 
-        if file_path not in data_node_entries:
-            file_block_nums = []
-            data_node_entries[file_path] = file_block_nums
-        else:
-            file_block_nums = data_node_entries[file_path]
+        block_id = file_path + str(file_block_num)
 
-        if file_block_num not in file_block_nums:
-            file_block_nums.append(file_block_num)
+        if block_id not in data_node_entries:
+            data_node_entries.add(block_id)
 
     def __get_inode__(self, file_path):
         lock.acquire()
