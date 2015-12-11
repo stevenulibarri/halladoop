@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
  * Created by devin on 12/3/15.
  */
 public class HalladoopClient {
+    public static final int BLOCK_SIZE = 64 * 1048576;
     private static final int cores = Runtime.getRuntime().availableProcessors();
 
     private final String NAME_NODE_ADDRESS;
