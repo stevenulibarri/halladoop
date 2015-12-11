@@ -13,3 +13,6 @@ class NodeManager():
         self.nodes.append(new_node)
         self.id = self.id + 1
         return new_node_id
+
+    def update_node(self, node_id, available_space_mb):
+        self.nodes[node_id].update(available_space_mb)

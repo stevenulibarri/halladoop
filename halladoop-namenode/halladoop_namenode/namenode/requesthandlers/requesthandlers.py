@@ -1,7 +1,9 @@
 from namenode.models import responsemodels
 from namenode.nodemanager import nodemanager
+from namenode.image import virtual_filesystem
 
 node_manager = nodemanager.NodeManager()
+vfs = virtual_filesystem.VirtualFileSystem()
 
 
 def handle_register(registration_request):
@@ -15,6 +17,11 @@ def handle_register(registration_request):
 
 
 def handle_heartbeat(heartbeat):
+    node_id = heartbeat.node_id
+    available_disk_space_mb = heartbeat.available_disk_space_mb
+
+    node_manager.update_node(node_id, available_disk_space_mb)
+
     return responsemodels.HeartbeatResponse(["1", "2", "3"], [{"block_id": "123", "nodes": ["1.2.3.4"]}])
 
 
