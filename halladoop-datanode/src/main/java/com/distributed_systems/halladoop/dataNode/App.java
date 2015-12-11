@@ -50,8 +50,8 @@ public class App
 	
     public static void main( String[] args )
     {
-    	corePath = "/"; //Get from command arg
-    	String ip = "127.0.0.1"; //Also get from command args to circumvent complicated ip issues
+    	corePath = args[0]; //Get from command arg
+    	String ip = args[1]; //Also get from command args to circumvent complicated ip issues
 		try(ServerSocket server = new ServerSocket(4567)){
 			HttpClient client = HttpClients.createDefault();
 			File everything = new File(corePath);
