@@ -1,11 +1,8 @@
-import logging
-
 from namenode.models import responsemodels
 from namenode.nodemanager import nodemanager
 from namenode.image.virtualfilesystem import VirtualFileSystem
 from namenode.image import manifestcomparator as manifests
 
-logger = logging.getLogger(__name__)
 node_manager = nodemanager.NodeManager()
 vfs = VirtualFileSystem()
 
@@ -28,8 +25,8 @@ def handle_heartbeat(heartbeat):
 
     #Check block_manifest against VFS
     datanode_mismatch_blocks, vfs_mismatch_blocks = manifests.check_match(node_manifest, vfs.get_blocks_for_node(node_id))
-    logger.debug("Datanode mismatch blocks " + str(datanode_mismatch_blocks))
-    logger.debug("VFS mismatch blocks " + str(vfs_mismatch_blocks))
+    print("Datanode mismatch blocks " + str(datanode_mismatch_blocks))
+    print("VFS mismatch blocks " + str(vfs_mismatch_blocks))
     #if node has blocks that VFS doesn't
     #        add to delete response
     #        add delete to in progress buffer

@@ -3,6 +3,7 @@ Represents the "journal" of a filesystem similarly to what you'd expect int an e
 #TODO
   - timestamps
 """
+import logging
 from threading import Lock
 
 from namenode.image import config
