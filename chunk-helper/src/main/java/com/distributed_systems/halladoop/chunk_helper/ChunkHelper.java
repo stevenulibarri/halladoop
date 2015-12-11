@@ -61,7 +61,7 @@ public class ChunkHelper {
         HttpPost postRequest = new HttpPost(endpoint);
         ObjectMapper mapper = new ObjectMapper();
         CloseableHttpResponse response = null;
-        try {
+        try { 
             String chunkString = mapper.writeValueAsString(chunk);
             HttpEntity entity = new StringEntity(chunkString);
             postRequest.setEntity(entity);

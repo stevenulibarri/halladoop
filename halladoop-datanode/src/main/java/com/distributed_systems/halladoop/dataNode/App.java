@@ -1,8 +1,11 @@
 package com.distributed_systems.halladoop.dataNode;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -10,13 +13,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.distributed_systems.halladoop.dataNode.model.Operation;
+import com.distributed_systems.halladoop.dataNode.model.ReadData;
 import com.distributed_systems.halladoop.dataNode.model.RegisterInfo;
+import com.distributed_systems.halladoop.dataNode.model.RegisterResponse;
+import com.distributed_systems.halladoop.dataNode.model.WriteData;
 
 
 /**
@@ -47,7 +55,9 @@ public class App
 			HttpPost post = new HttpPost();
 			HttpEntity entity = new StringEntity(mapper.writeValueAsString(registerInfo));
 			post.setEntity(entity);
-			client.execute(post);
+			HttpResponse response = client.execute(post);
+			RegisterResponse rr = mapper.readValue(response.getEntity().getContent(), RegisterResponse.class);
+			nodeID = rr.getNodeID();
 			while(true){
 				Socket socket = server.accept();
 			}
@@ -80,7 +90,25 @@ public class App
     public static boolean replicateFile(String blockId, String nodeIp, int nodePort){
     	try {
 			Socket socket = new Socket(nodeIp, nodePort);
-			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+			Operation operation = Operation.READ;
+			ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
+			stream.writeObject(operation);
+			ReadData readData = new ReadData();
+			readData.setBlockId(blockId);
+			stream.writeObject(readData);
+			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+			try {
+				WriteData writeData = (WriteData) inputStream.readObject();
+				String path = App.getNextPath(writeData.getBlockId());
+				File writeFile = new File(path);
+				writeFile.mkdir();
+				FileOutputStream fileOutput = new FileOutputStream(writeFile);
+				fileOutput.write(writeData.getData());
+				fileOutput.flush();
+				fileOutput.close();
+			} catch (Exception e) {
+				
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
