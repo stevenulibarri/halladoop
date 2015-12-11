@@ -3,7 +3,7 @@ package com.distributed_systems.halladoop.dataNode.model;
 public class HeartbeatResponse {
 
 	private String[] delete;
-	private ReplicationResponse[] replication;
+	private ReplicationResponse[] replicate;
 	
 	public String[] getDelete() {
 		return delete;
@@ -12,10 +12,10 @@ public class HeartbeatResponse {
 		this.delete = delete;
 	}
 	public ReplicationResponse[] getReplication() {
-		return replication;
+		return replicate;
 	}
 	public void setReplication(ReplicationResponse[] replication) {
-		this.replication = replication;
+		this.replicate = replication;
 	}
 	
 	

@@ -22,7 +22,7 @@ public class HalladoopClient {
     }
 
     public void write(File file) {
-        WriteWorker writeWorker = new WriteWorker(file);
+        WriteWorker writeWorker = new WriteWorker(file, NAME_NODE_ADDRESS);
         workers.execute(writeWorker);
     }
 

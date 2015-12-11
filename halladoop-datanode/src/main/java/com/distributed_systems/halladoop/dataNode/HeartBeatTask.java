@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.TimerTask;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -16,6 +18,8 @@ import com.distributed_systems.halladoop.dataNode.model.ReplicationResponse;
 
 public class HeartBeatTask extends TimerTask{
 
+	private final int PORT = 4567;
+	
 	@Override
 	public void run(){
 		HttpClient client = HttpClients.createDefault();
@@ -26,12 +30,20 @@ public class HeartBeatTask extends TimerTask{
 		info.setNodeID(App.getId());
 		HttpPost post = new HttpPost();
 		try {
-			HttpResponse response = client.execute(post);
 			ObjectMapper mapper = new ObjectMapper();
+			HttpEntity entity = new StringEntity(mapper.writeValueAsString(info));
+			post.setEntity(entity);
+			HttpResponse response = client.execute(post);
 			HeartbeatResponse heartbeat =  mapper.readValue(response.getEntity().getContent(), HeartbeatResponse.class);
+			for(String delete : heartbeat.getDelete()){
+				if (App.getFiles().containsKey(delete)) {
+					File deleteFile = new File(App.getFiles().get(delete));
+					deleteFile.delete();
+				}
+			}
 			replication: for(ReplicationResponse r : heartbeat.getReplication()){
 				for(String node : r.getNodes()){
-					if(App.replicateFile(r.getBlockID(), node)){
+					if(App.replicateFile(r.getBlockID(), node, PORT)){
 						break replication;
 					}
 				}
