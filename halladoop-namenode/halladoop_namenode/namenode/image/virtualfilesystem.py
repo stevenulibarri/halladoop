@@ -2,9 +2,6 @@
 Represents the "journal" of a filesystem similarly to what you'd expect int an ext# filesystem
 #TODO
   - timestamps
-  - implement a buffer for adding an entry
-  - implement some sort of time mechanism to assist heartbeats, if applicable
-  - optimization of data structure (which I'm sure is possible)
 """
 from threading import Lock
 
@@ -27,7 +24,6 @@ class VirtualFileSystem:
         with (yield from lock):
             parent_inode = self.__parentinode__(file_path)
             if not parent_inode:
-                parent_path = self.__parentpath__(file_path)
                 self.add_directory(self.__parentpath__(file_path))
                 parent_inode = self.__parentinode__(file_path)
             else:

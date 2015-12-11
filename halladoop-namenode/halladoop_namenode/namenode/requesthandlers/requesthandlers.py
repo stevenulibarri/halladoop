@@ -1,10 +1,13 @@
+import logging
+
 from namenode.models import responsemodels
 from namenode.nodemanager import nodemanager
-from namenode.image import virtual_filesystem
+from namenode.image.virtualfilesystem import VirtualFileSystem
+from namenode.image import manifestcomparator as manifests
 
+logger = logging.getLogger(__name__)
 node_manager = nodemanager.NodeManager()
-vfs = virtual_filesystem.VirtualFileSystem()
-
+vfs = VirtualFileSystem()
 
 def handle_register(registration_request):
     node_ip = registration_request.node_ip
@@ -19,8 +22,21 @@ def handle_register(registration_request):
 def handle_heartbeat(heartbeat):
     node_id = heartbeat.node_id
     available_disk_space_mb = heartbeat.available_disk_space_mb
+    node_manifest = heartbeat.block_manifest
 
     node_manager.update_node(node_id, available_disk_space_mb)
+
+    #Check block_manifest against VFS
+    datanode_mismatch_blocks, vfs_mismatch_blocks = manifests.check_match(node_manifest, vfs.get_blocks_for_node(node_id))
+    logger.debug("Datanode mismatch blocks " + str(datanode_mismatch_blocks))
+    logger.debug("VFS mismatch blocks " + str(vfs_mismatch_blocks))
+    #if node has blocks that VFS doesn't
+    #        add to delete response
+    #        add delete to in progress buffer
+    #if vfs has blocks that vfs doesn't
+    #    check in progress buffer, if not in buffer
+    #        add to replicate response
+    #        add replicate to progress buffer
 
     return responsemodels.HeartbeatResponse(["1", "2", "3"], [{"block_id": "123", "nodes": ["1.2.3.4"]}])
 
