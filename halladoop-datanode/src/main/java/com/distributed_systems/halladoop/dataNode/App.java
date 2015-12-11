@@ -30,6 +30,11 @@ public class App
 	private static Map<String, String> files = new HashMap<String, String>();
 	private static String corePath;
 	private static String nodeID;
+	private static final int FILES_PER_DIRECTORY = 20;
+	private static int filesInDirectory = 0;
+	private static long directoryNumber;
+	private static Map<String, String> directoryMap = new HashMap<String, String>();
+
 	
     public static void main( String[] args )
     {
@@ -82,5 +87,16 @@ public class App
 		}
     	return false;
     }
+    
+	public static String getNextPath(String blockId) {
+		if (filesInDirectory >= FILES_PER_DIRECTORY) {
+			directoryNumber++;
+			filesInDirectory = 0;
+		}
+		filesInDirectory++;
+		String path = "/home/kevin/" + directoryNumber + "/";
+		directoryMap.put(blockId, path + "/" + blockId + ".bin");
+		return path;
+	}
     // /packet(){http request() -> block ID, Raw Data, PipelineNode, Packet #/Total}
 }
