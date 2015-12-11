@@ -9,4 +9,5 @@ class DataNode:
         self.node_ip = node_ip
         self.total_space_mb = total_space_mb
         self.available_space_mb = total_space_mb
-        self.last_reported = time.ctime()
+        self.last_reported = time.localtime()
+        self.is_online = True

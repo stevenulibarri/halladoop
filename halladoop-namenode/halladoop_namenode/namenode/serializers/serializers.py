@@ -59,3 +59,18 @@ class WriteResponseSerializer(serializers.Serializer):
 class ReadResponseSerializer(serializers.Serializer):
 
     manifest = serializers.JSONField()
+
+
+class DataNodeSerializer(serializers.Serializer):
+
+    node_id = serializers.IntegerField()
+    node_ip = serializers.IPAddressField()
+    total_space_mb = serializers.IntegerField()
+    available_space_mb = serializers.IntegerField()
+    last_reported = serializers.TimeField(format=None)
+    is_online = serializers.BooleanField()
+
+
+class NodeManagerResponseSerializer(serializers.Serializer):
+
+    nodes = DataNodeSerializer(many=True)
