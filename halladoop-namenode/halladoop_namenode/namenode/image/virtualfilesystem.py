@@ -21,7 +21,7 @@ class VirtualFileSystem:
         self.__add_inode__(file_path, True)
 
     def __add_inode__(self, file_path, is_directory):
-        with (yield from lock):
+        with lock.acquire():
             print("made it")
             parent_inode = self.__parentinode__(file_path)
             if not parent_inode:
@@ -37,7 +37,7 @@ class VirtualFileSystem:
 
     def add_block_entry(self, file_path, file_block_num, data_node_id):
         lock.acquire()
-        with (yield from lock):
+        with lock.acquire():
             inode = self.__get_inode__(file_path)
             if inode and not inode.is_directory:
                 inode.add_pointer(file_block_num, data_node_id)
