@@ -65,7 +65,6 @@ public class BlockReader implements Runnable {
 					writeOutputStream.flush();
 					writeOutputStream.close();
 				} catch (Exception e) {
-					
 					ObjectOutputStream writeOutputStream = new ObjectOutputStream(socket.getOutputStream());
 					writeOutputStream.writeObject(false);
 					writeOutputStream.flush();
