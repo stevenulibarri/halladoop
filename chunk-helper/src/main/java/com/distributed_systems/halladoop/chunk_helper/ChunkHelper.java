@@ -43,12 +43,25 @@ public class ChunkHelper {
         return new ChunkIterator(block);
     }
 
+	public ChunkData processChunk(Request request) throws JsonParseException, JsonMappingException, IOException{
+		ObjectMapper mapper = new ObjectMapper();
+		ChunkData data = mapper.readValue(request.bodyAsBytes(), ChunkData.class);
+		return data;
+	}
+	// addChunk(ChunkData)
+	public void addChunk(ChunkData chunk){
+		block.addChunk(chunk);
+	}
+	
+	public byte[] getData(){
+		return (block.getData() != null && block.getData().length != 0) ? block.getData() : null;
+	}
     public CloseableHttpResponse sendChunk(String endpoint, ChunkData chunk) {
         CloseableHttpClient client = HttpClients.createDefault();
         HttpPost postRequest = new HttpPost(endpoint);
         ObjectMapper mapper = new ObjectMapper();
         CloseableHttpResponse response = null;
-        try {
+        try { 
             String chunkString = mapper.writeValueAsString(chunk);
             HttpEntity entity = new StringEntity(chunkString);
             postRequest.setEntity(entity);
@@ -66,21 +79,5 @@ public class ChunkHelper {
         return response;
     }
 
-    public ChunkData processChunk(Request request) throws JsonParseException, JsonMappingException, IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        ChunkData data = mapper.readValue(request.bodyAsBytes(), ChunkData.class);
-        return data;
-    }
 
-    // addChunk(ChunkData)
-    public void addChunk(ChunkData chunk) {
-        block.addChunk(chunk);
-    }
-
-    public byte[] getData() {
-        if (block.getData() != null && block.getData().length != 0) {
-            return block.getData();
-        }
-        throw new RuntimeException("No data in the block. Incomplete transfer.");
-    }
 }

@@ -37,8 +37,7 @@ public class DataNodeApi {
 	private int filesInDirectory = 0;
 	private long directoryNumber;
 	private Map<String, String> directoryMap = new HashMap<String, String>();
-	private Map<String, Iterator<ChunkData>> dataToSend = new HashMap<String, Iterator<ChunkData>>();
-	private ChunkHelper writer;
+	private String blockId;
 	
 	public void api() {
 
@@ -47,7 +46,7 @@ public class DataNodeApi {
 	public Response initializeResponse(Request request, Response response){
 		try {
 			InitializeData data = mapper.readValue(request.body(), InitializeData.class);
-			writer = new ChunkHelper(data.getFileSize());
+			blockId = data.getBlockId();
 			response.status(202);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -58,16 +57,19 @@ public class DataNodeApi {
 	
 	public Response writeFile(Request request, Response response)
 			throws JsonParseException, JsonMappingException, IOException {
-		PostData data = mapper.readValue(request.bodyAsBytes(), PostData.class);
-		File directory = new File(getNextPath(data.getBlockId()));
-		if (!directory.exists()) {
-			directory.mkdir();
+		ChunkData data = mapper.readValue(request.bodyAsBytes(), ChunkData.class);
+		byte[] testData = writer.getData();
+		if(writer.getData() != null && writer.getData().length != 0){
+			File directory = new File(getNextPath(blockId));
+			if (!directory.exists()) {
+				directory.mkdir();
+			}
+			BufferedOutputStream bos = new BufferedOutputStream(
+					new FileOutputStream(directory.getPath() + "/" + blockId + ".bin"));
+			bos.write(data.getData());
+			bos.flush();
+			bos.close();
 		}
-		BufferedOutputStream bos = new BufferedOutputStream(
-				new FileOutputStream(directory.getPath() + "/" + data.getBlockId() + ".bin"));
-		bos.write(data.getData());
-		bos.flush();
-		bos.close();
 		response.status(201);
 		System.out.println("Wrote the big file.");
 		return response;
