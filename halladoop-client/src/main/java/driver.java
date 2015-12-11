@@ -1,8 +1,6 @@
-import com.distributed_systems.halladoop.client.data.Block;
-import com.distributed_systems.halladoop.client.utils.FileUtils;
+import com.distributed_systems.halladoop.client.HalladoopClient;
 
 import java.io.*;
-import java.util.List;
 
 /**
  * Created by devin on 12/9/15.
@@ -10,8 +8,8 @@ import java.util.List;
 public class driver {
     public static void main(String[] args) throws IOException {
         File file = new File("/home/devin/gentoo_root.img");
-        List<Block> blocks = FileUtils.createBlocks(file);
 
-        System.out.println(blocks.size());
+        HalladoopClient client = new HalladoopClient("104.236.162.28", 8080);
+        client.write(file);
     }
 }
