@@ -21,6 +21,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.distributed_systems.halladoop.dataNode.model.FinalizeInfo;
 import com.distributed_systems.halladoop.dataNode.model.Operation;
 import com.distributed_systems.halladoop.dataNode.model.ReadData;
 import com.distributed_systems.halladoop.dataNode.model.RegisterInfo;
@@ -51,7 +52,7 @@ public class App
     {
     	corePath = "/"; //Get from command arg
     	String ip = "127.0.0.1"; //Also get from command args to circumvent complicated ip issues
-		try(ServerSocket server = new ServerSocket(4568)){
+		try(ServerSocket server = new ServerSocket(4567)){
 			HttpClient client = HttpClients.createDefault();
 			File everything = new File(corePath);
 			RegisterInfo registerInfo = new RegisterInfo(ip, everything.getTotalSpace(), everything.getUsableSpace());
@@ -104,19 +105,24 @@ public class App
 			readData.setBlockId(blockId);
 			stream.writeObject(readData);
 			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-			try {
-				WriteData writeData = (WriteData) inputStream.readObject();
-				String path = App.getNextPath(writeData.getBlockId());
-				File writeFile = new File(path);
-				writeFile.mkdir();
-				FileOutputStream fileOutput = new FileOutputStream(writeFile);
-				fileOutput.write(writeData.getData());
-				fileOutput.flush();
-				fileOutput.close();
-			} catch (Exception e) {
-				
-			}
-		} catch (IOException e) {
+			WriteData writeData = (WriteData) inputStream.readObject();
+			String path = App.getNextPath(writeData.getBlockId());
+			File writeFile = new File(path);
+			writeFile.mkdir();
+			FileOutputStream fileOutput = new FileOutputStream(writeFile);
+			fileOutput.write(writeData.getData());
+			fileOutput.flush();
+			fileOutput.close();
+			
+			HttpClient client = HttpClients.createDefault();
+			FinalizeInfo finalize = new FinalizeInfo();
+			finalize.setBlock_id(blockId);
+			finalize.setNode_id(new String[]{nodeID});
+			HttpEntity entity = new StringEntity(mapper.writeValueAsString(finalize));
+			HttpPost post = new HttpPost(endpoint);
+			post.setEntity(entity);
+			client.execute(post);
+		} catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
