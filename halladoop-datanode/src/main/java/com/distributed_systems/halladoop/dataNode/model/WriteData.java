@@ -1,6 +1,10 @@
 package com.distributed_systems.halladoop.dataNode.model;
 
-public class WriteData {
+import java.io.Serializable;
+
+public class WriteData implements Serializable {
+	private static final long serialVersionUID = 42L;
+
 	private byte[] data;
 	private String blockId;
 
