@@ -72,6 +72,11 @@ public class BlockReader implements Runnable {
 				}
 				break;
 			case DELETE:
+				ReadData deleteData = (ReadData) inputStream.readObject();
+				if (App.getFiles().containsKey(deleteData.getBlockId())) {
+					File file = new File(App.getFiles().get(deleteData.getBlockId()));
+					file.delete();
+				}
 				break;
 			}
 		} catch (IOException e) {

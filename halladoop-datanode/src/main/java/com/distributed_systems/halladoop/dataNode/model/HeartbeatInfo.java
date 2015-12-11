@@ -5,27 +5,27 @@ import java.util.Set;
 
 public class HeartbeatInfo {
 
-	private String nodeID;
-	private Set<String> blockManifest;
-	private long availableDiskSpace;
+	private String node_id;
+	private Set<String> block_manifest;
+	private long available_disk_space;
 	
 	public String getNodeID() {
-		return nodeID;
+		return node_id;
 	}
 	public void setNodeID(String nodeID) {
-		this.nodeID = nodeID;
+		this.node_id = nodeID;
 	}
 	public Set<String> getBlockManifest() {
-		return blockManifest;
+		return block_manifest;
 	}
 	public void setBlockManifest(Set<String> blockManifest) {
-		this.blockManifest = blockManifest;
+		this.block_manifest = blockManifest;
 	}
 	public long getAvailableDiskSpace() {
-		return availableDiskSpace;
+		return available_disk_space;
 	}
 	public void setAvailableDiskSpace(long availableDiskSpace) {
-		this.availableDiskSpace = availableDiskSpace;
+		this.available_disk_space = availableDiskSpace;
 	}
 	
 	

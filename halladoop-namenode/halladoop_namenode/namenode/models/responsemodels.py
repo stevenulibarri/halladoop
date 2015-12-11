@@ -1,8 +1,8 @@
 
 class RegistrationResponse(object):
 
-    def __init__(self, nodeID):
-        self.nodeID = nodeID
+    def __init__(self, node_id):
+        self.node_id = node_id
 
 
 class HeartbeatResponse(object):

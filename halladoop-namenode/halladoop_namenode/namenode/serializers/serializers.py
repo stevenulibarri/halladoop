@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from namenode.models import requestmodels, responsemodels
+from namenode.models import requestmodels
 
 
 class RegistrationRequestSerializer(serializers.Serializer):
 
-    nodeIP = serializers.IPAddressField()
-    totalDiskSpaceMb = serializers.IntegerField()
-    availableDiskSpaceMB = serializers.IntegerField()
+    node_ip = serializers.IPAddressField()
+    total_disk_space_mb = serializers.IntegerField()
+    available_disk_space_mb = serializers.IntegerField()
 
     def create(self, validated_data):
         return requestmodels.RegistrationRequest(**validated_data)
@@ -14,9 +14,9 @@ class RegistrationRequestSerializer(serializers.Serializer):
 
 class HeartbeatSerializer(serializers.Serializer):
 
-    nodeID = serializers.IntegerField()
-    availableDiskSpaceMB = serializers.IntegerField()
-    blockManifest = serializers.JSONField()
+    node_id = serializers.IntegerField()
+    available_disk_space_mb = serializers.IntegerField()
+    block_manifest = serializers.JSONField()
 
     def create(self, validated_data):
         return requestmodels.Heartbeat(**validated_data)
@@ -24,7 +24,7 @@ class HeartbeatSerializer(serializers.Serializer):
 
 class FinalizeRequestSerializer(serializers.Serializer):
 
-    blockId = serializers.CharField()
+    block_id = serializers.CharField()
     nodes = serializers.ListField(child=serializers.IntegerField())
 
     def create(self, validated_data):
@@ -33,8 +33,8 @@ class FinalizeRequestSerializer(serializers.Serializer):
 
 class WriteRequestSerializer(serializers.Serializer):
 
-    path = serializers.FilePathField()
-    numBlocks = serializers.IntegerField()
+    file_path = serializers.CharField()
+    num_blocks = serializers.IntegerField()
 
     def create(self, validated_data):
         return requestmodels.WriteRequest(**validated_data)
@@ -42,7 +42,7 @@ class WriteRequestSerializer(serializers.Serializer):
 
 class RegistrationResponseSerializer(serializers.Serializer):
 
-    nodeID = serializers.IntegerField()
+    node_id = serializers.IntegerField()
 
 
 class HeartbeatResponseSerializer(serializers.Serializer):
