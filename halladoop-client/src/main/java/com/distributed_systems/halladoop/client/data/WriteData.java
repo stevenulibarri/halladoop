@@ -15,4 +15,8 @@ public class WriteData implements Serializable {
         this.data = data;
         this.blockId = blockId;
     }
+
+    public String getBlockId() {
+        return blockId;
+    }
 }
