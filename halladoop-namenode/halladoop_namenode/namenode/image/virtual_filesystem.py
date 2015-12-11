@@ -8,7 +8,7 @@ Represents the "journal" of a filesystem similarly to what you'd expect int an e
 """
 from threading import Lock
 
-import config
+from halladoop_namenode.namenode.image import config
 
 lock = Lock()
 

@@ -1,6 +1,5 @@
 from namenode.nodemanager.datanode import DataNode
 
-
 class NodeManager():
 
     def __init__(self):
