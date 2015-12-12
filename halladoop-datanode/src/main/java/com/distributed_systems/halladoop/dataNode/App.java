@@ -5,10 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -41,7 +39,7 @@ public class App
 	private static String endpoint = "http://104.236.162.28:8080/";
 	private static Map<String, String> files = new HashMap<String, String>();
 	private static String corePath;
-	private static String nodeID;
+	private static int nodeID;
 	private static final int FILES_PER_DIRECTORY = 20;
 	private static int filesInDirectory = 0;
 	private static long directoryNumber;
@@ -60,12 +58,19 @@ public class App
 			registerInfo.setAvailable_disk_space_mb(everything.getUsableSpace() / 1024 / 1024);
 			registerInfo.setTotal_disk_space_mb(everything.getTotalSpace() / 1024 / 1024);
 			HttpPost post = new HttpPost(endpoint + "register/");
-			StringEntity entity = new StringEntity(mapper.writeValueAsString(registerInfo));
-			entity.setContentType("application/json");
+			HttpEntity entity = new StringEntity("{\"node_ip\":\""+ registerInfo.getNode_ip() + "\",\"total_disk_space_mb\":\""+registerInfo.getTotal_disk_space_mb()+"\",\"available_disk_space_mb\":\"" + registerInfo.getAvailable_disk_space_mb() +"\"} ");
+			System.out.println(entity);
 			post.setEntity(entity);
+			post.setHeader("Content-Type", "application/json");
 			HttpResponse response = client.execute(post);
+
+//			StringWriter writer = new StringWriter();
+//			IOUtils.copy(response.getEntity().getContent(), writer);
+//			String theString = writer.toString();
+//			System.out.println(theString);
+			
 			RegisterResponse rr = mapper.readValue(response.getEntity().getContent(), RegisterResponse.class);
-			nodeID = rr.getNodeID();
+			nodeID = rr.getnode_id();
 			Timer timer = new Timer();
 			timer.schedule(new HeartBeatTask(), 0, 60000);
 			while(true){
@@ -91,7 +96,7 @@ public class App
     	return corePath;
     }
     
-    public static String getId(){
+    public static int getId(){
     	return nodeID;
     }
     
@@ -121,7 +126,7 @@ public class App
 			HttpClient client = HttpClients.createDefault();
 			FinalizeInfo finalize = new FinalizeInfo();
 			finalize.setBlock_id(blockId);
-			finalize.setNode_id(new String[]{nodeID});
+			finalize.setNode_id(new int[]{nodeID});
 			HttpEntity entity = new StringEntity(mapper.writeValueAsString(finalize));
 			HttpPost post = new HttpPost(endpoint);
 			post.setEntity(entity);

@@ -2,14 +2,14 @@ package com.distributed_systems.halladoop.dataNode.model;
 
 public class RegisterResponse {
 
-	private String nodeID;
+	private int node_id;
 
-	public String getNodeID() {
-		return nodeID;
+	public int getnode_id() {
+		return node_id;
 	}
 
-	public void setNodeID(String nodeID) {
-		this.nodeID = nodeID;
+	public void setnode_id(int nodeID) {
+		this.node_id = nodeID;
 	}
 	
 }
