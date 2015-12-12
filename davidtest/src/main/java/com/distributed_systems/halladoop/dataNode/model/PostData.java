@@ -1,16 +1,22 @@
 package com.distributed_systems.halladoop.dataNode.model;
 
-import java.io.Serializable;
+public class PostData {
 
-public class ReadData  implements Serializable{
 	private String blockId;
-
+	private byte[] data;
+	
 	public String getBlockId() {
 		return blockId;
 	}
-
 	public void setBlockId(String blockId) {
 		this.blockId = blockId;
 	}
-
+	public byte[] getData() {
+		return data;
+	}
+	public void setData(byte[] data) {
+		this.data = data;
+	}
+	
+	
 }

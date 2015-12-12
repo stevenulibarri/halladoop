@@ -37,7 +37,6 @@ public class App
 	private static ObjectMapper mapper = new ObjectMapper();
 	public final String nameNode = "";
 	private static String endpoint = "http://104.236.162.28:8080/";
-	private static Map<String, String> files = new HashMap<String, String>();
 	private static String corePath;
 	private static int nodeID;
 	private static final int FILES_PER_DIRECTORY = 20;
@@ -72,7 +71,7 @@ public class App
 			RegisterResponse rr = mapper.readValue(response.getEntity().getContent(), RegisterResponse.class);
 			nodeID = rr.getnode_id();
 			Timer timer = new Timer();
-			timer.schedule(new HeartBeatTask(), 0, 60000);
+			timer.schedule(new HeartBeatTask(), 0, 300000);
 			while(true){
 				Socket socket = server.accept();
 				Thread t = new Thread(new BlockReader(socket));
@@ -89,7 +88,7 @@ public class App
     }
     
     public static Map<String, String> getFiles(){
-    	return files;
+    	return directoryMap;
     }
     
     public static String getCorePath(){
@@ -144,8 +143,8 @@ public class App
 			filesInDirectory = 0;
 		}
 		filesInDirectory++;
-		String path = "/home/kevin/" + directoryNumber + "/";
-		directoryMap.put(blockId, path + "/" + blockId + ".bin");
+		String path = corePath + directoryNumber + File.separator;
+		directoryMap.put(blockId, path + File.separator + blockId + ".bin");
 		return path;
 	}
     // /packet(){http request() -> block ID, Raw Data, PipelineNode, Packet #/Total}

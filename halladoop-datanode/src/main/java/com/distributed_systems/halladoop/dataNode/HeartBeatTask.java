@@ -41,9 +41,9 @@ public class HeartBeatTask extends TimerTask{
 			post.setHeader("Content-Type", "application/json");
 			HttpResponse response = client.execute(post);
 			StringWriter writer = new StringWriter();
-			IOUtils.copy(response.getEntity().getContent(), writer);
-			String theString = writer.toString();
-			System.out.println(theString);
+			//IOUtils.copy(response.getEntity().getContent(), writer);
+			//String theString = writer.toString();
+			//System.out.println(theString);
 			System.out.println(response.getEntity().getContent());
 			HeartbeatResponse heartbeat =  mapper.readValue(response.getEntity().getContent(), HeartbeatResponse.class);
 			for(String delete : heartbeat.getDelete()){

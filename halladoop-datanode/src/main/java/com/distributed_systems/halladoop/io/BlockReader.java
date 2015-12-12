@@ -1,14 +1,19 @@
 package com.distributed_systems.halladoop.io;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Map;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.distributed_systems.halladoop.dataNode.App;
 import com.distributed_systems.halladoop.dataNode.model.Operation;
@@ -24,26 +29,27 @@ public class BlockReader implements Runnable {
 
 	public void run() {
 		try {
+			//ObjectMapper mapper = new ObjectMapper();
 			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+			//Operation op = mapper.readValue(getNextData(socket.getInputStream()), Operation.class);
 			Operation op = (Operation) inputStream.readObject();
 			switch (op) {
 			case READ:
+				//ReadData readData = mapper.readValue(socket.getInputStream(), ReadData.class);
 				ReadData readData = (ReadData) inputStream.readObject();
 				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+				Map<String, String> map = App.getFiles();
 				if (App.getFiles().containsKey(readData.getBlockId())) {
-					File file = new File(App.getFiles().get(readData.getBlockId()));
+					String path = App.getFiles().get(readData.getBlockId());
+					File file = new File(path);
 					FileInputStream fileInput = new FileInputStream(file);
-					ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-					int nextInput = 0;
-					while (nextInput != -1) {
-						nextInput = fileInput.read();
-						buffer.write(nextInput);
-					}
-					outputStream.writeObject(buffer.toByteArray());
+					byte[] fileData = new byte[(int) file.length()];
+					fileInput.read(fileData);
+					outputStream.writeObject(fileData);
 					fileInput.close();
 					outputStream.flush();
 					outputStream.close();
-					inputStream.close();
+					//inputStream.close();
 
 				} else {
 					throw new FileNotFoundException();
@@ -51,11 +57,12 @@ public class BlockReader implements Runnable {
 				break;
 			case WRITE:
 				WriteData writeData = (WriteData) inputStream.readObject();
+				//WriteData writeData = mapper.readValue(socket.getInputStream(), WriteData.class);
 				try {
 					String path = App.getNextPath(writeData.getBlockId());
 					File writeFile = new File(path);
-					writeFile.mkdir();
-					FileOutputStream fileOutput = new FileOutputStream(writeFile);
+					writeFile.mkdirs();
+					FileOutputStream fileOutput = new FileOutputStream(writeFile + File.separator + writeData.getBlockId() + ".bin");
 					fileOutput.write(writeData.getData());
 					fileOutput.flush();
 					fileOutput.close();
@@ -73,6 +80,7 @@ public class BlockReader implements Runnable {
 				break;
 			case DELETE:
 				ReadData deleteData = (ReadData) inputStream.readObject();
+				//ReadData deleteData = mapper.readValue(socket.getInputStream(), ReadData.class);
 				if (App.getFiles().containsKey(deleteData.getBlockId())) {
 					File file = new File(App.getFiles().get(deleteData.getBlockId()));
 					file.delete();
@@ -82,10 +90,28 @@ public class BlockReader implements Runnable {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private byte[] getNextData(InputStream is){
+		int readValue;
+		try {
+			readValue = is.read();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			while(readValue != -1){
+				readValue = is.read();
+				baos.write(readValue);
+			}
+			return baos.toByteArray();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

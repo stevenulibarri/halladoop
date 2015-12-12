@@ -1,8 +1,6 @@
 package com.distributed_systems.halladoop.dataNode.model;
 
-import java.io.Serializable;
-
-public enum Operation implements Serializable{
+public enum Operation {
 	READ,
 	WRITE,
 	DELETE
