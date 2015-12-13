@@ -35,9 +35,9 @@ def handle_heartbeat(heartbeat):
     for mismatched_block in datanode_mismatch_blocks:
         if buffer.block_exists(node_id, mismatched_block, buffer.deletes_in_progress):
             block_entry_time = buffer.deletes_in_progress[node_id][mismatched_block].time_issued
-            print("Time delete was issued for block " + mismatched_block + " on node " + node_id + ": " + block_entry_time)
+            print("Delete was issued for block " + str(mismatched_block) + " on node " + str(node_id) + ": " + str(block_entry_time))
         else:
-            print("Block " + mismatched_block + " needs to be deleted in node " + node_id)
+            print("Block " + str(mismatched_block) + " needs to be deleted in node " + str(node_id))
             buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_deletes)
             buffer.add(node_id, mismatched_block, buffer.deletes_in_progress)
             delete_response_blocks.append(mismatched_block)
@@ -45,9 +45,9 @@ def handle_heartbeat(heartbeat):
     for mismatched_block in vfs_mismatch_blocks:
         if buffer.block_exists(node_id, mismatched_block, buffer.replications_in_progress):
             block_entry_time = buffer.replications_in_progress[node_id][mismatched_block].time_issued
-            print("Time replicate was issued for block " + mismatched_block + " on node " + node_id + ": " + block_entry_time)
+            print("Time replicate was issued for block " + str(mismatched_block) + " on node " + node_id + ": " + str(block_entry_time))
         else:
-            print("Block " + mismatched_block + " needs to be replicated in node " + node_id)
+            print("Block " + str(mismatched_block) + " needs to be replicated in node " + str(node_id))
             buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_replications)
             buffer.add(node_id, mismatched_block, buffer.replications_in_progress)
             replicate_response_blocks.append(mismatched_block)
