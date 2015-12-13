@@ -38,7 +38,7 @@ def handle_heartbeat(heartbeat):
             print("Delete was issued for block " + str(mismatched_block) + " on node " + str(node_id) + ": " + str(block_entry_time))
         else:
             print("Block " + str(mismatched_block) + " needs to be deleted in node " + str(node_id))
-            buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_deletes)
+            buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_deletions)
             buffer.add(node_id, mismatched_block, buffer.deletes_in_progress)
             delete_response_blocks.append(mismatched_block)
 
