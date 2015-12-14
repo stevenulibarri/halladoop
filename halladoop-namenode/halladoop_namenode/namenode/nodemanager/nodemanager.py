@@ -27,5 +27,5 @@ class NodeManager():
 
     def get_nodes_for_write(self, num_nodes):
         chosen_nodes = random.sample(self.nodes, num_nodes)
-        nodes = ({'node-id': n.node_id, 'node_ip': n.node_ip} for n in chosen_nodes)
+        nodes = ({'node_id': n.node_id, 'node_ip': n.node_ip} for n in chosen_nodes)
         return nodes
