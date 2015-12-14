@@ -109,13 +109,21 @@ def handle_write(write_request):
     return responsemodels.WriteResponse(nodes)
 
 def handle_read(file_path):
-    return responsemodels.ReadResponse([
-            {"block_id": "123", "nodes": ["1.2.3.4.", "4.3.2.1", "8.8.8.8"]},
-            {"block_id": "321", "nodes": ["1.2.3.4.", "4.3.2.1", "8.8.8.8"]},
-        ])
+    file = file_path[5:]
+    block_entries = vfs.get_blocks_for_file(file)
+    manifest = []
+
+    for entry in block_entries:
+        ips = node_manager.get_ips_for_nodes(entry.nodes)
+        manifest.append({"block_id": entry.block_id, "nodes": ips})
+
+    return responsemodels.ReadResponse(manifest)
 
 def handle_delete(file_path):
     pass
 
 def cluster_query():
     return {"nodes": node_manager.nodes}
+
+def _parse_request_path(file_path):
+    pass
