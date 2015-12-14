@@ -16,7 +16,10 @@ class NodeManager():
         return new_node_id
 
     def update_node(self, node_id, available_space_mb):
-        self.nodes[node_id].update(available_space_mb)
+        if node_id >= 0 and node_id < len(self.nodes):
+            self.nodes[node_id].update(available_space_mb)
+        else:
+            raise ValueError("Node with id " + str(node_id) + " is not registered")
 
     def get_ips_for_nodes(self, node_ids):
         ips = []
