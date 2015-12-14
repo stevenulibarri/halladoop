@@ -99,11 +99,13 @@ class VirtualFileSystem:
         inode = self._get_inode(file_path)
         blocks = []
 
-        if inode and inode.is_directory:
+        if inode and not inode.is_directory:
             for block_num, node_ids in inode.pointers.items():
                 entry = {"block_id": file_path + str(block_num)}
                 entry["nodes"] = node_ids
                 blocks.append(entry)
+
+        return blocks
 
     def parse_block_id(self, block_id):
         block_id = str(block_id)

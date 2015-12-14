@@ -57,7 +57,7 @@ def _get_delete_response(node_id, mismatched_blocks):
             vfs.remove_block_entry(node_id, block)
             delete_response.append(block)
 
-    return delete_response
+    return sorted(delete_response)
 
 
 def _get_replicate_response(node_id, mismatched_blocks):
@@ -90,7 +90,7 @@ def _get_replicate_response(node_id, mismatched_blocks):
         mismatched_block_entry["nodes"] = ips
         replicate_response.append(mismatched_block_entry)
 
-    return replicate_response
+    return sorted(replicate_response)
 
 
 def _remove_finished_deletions(node_id, mismatched_blocks):
@@ -114,12 +114,13 @@ def handle_finalize(finalize_request):
 
 def handle_write(write_request):
     nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
-    node_ids = (n.node_id for n in nodes)
+    node_ids = (n['node_id'] for n in nodes)
 
     for id in node_ids:
         for block_num in range(write_request.num_blocks):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
+    # nodes = sorted(nodes, key=nodes['node_id'])
     return responsemodels.WriteResponse(nodes)
 
 
@@ -129,9 +130,10 @@ def handle_read(file_path):
     manifest = []
 
     for entry in block_entries:
-        ips = node_manager.get_ips_for_nodes(entry.nodes)
-        manifest.append({"block_id": entry.block_id, "nodes": ips})
+        ips = node_manager.get_ips_for_nodes(entry["nodes"])
+        manifest.append({"block_id": entry["block_id"], "nodes": ips})
 
+    manifest = sorted(manifest)
     return responsemodels.ReadResponse(manifest)
 
 

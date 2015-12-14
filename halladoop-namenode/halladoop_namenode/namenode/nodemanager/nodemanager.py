@@ -23,9 +23,11 @@ class NodeManager():
 
     def get_ips_for_nodes(self, node_ids):
         ips = list(n.node_ip for n in self.nodes if n.node_id in node_ids)
+        if not ips:
+            ips = []
         return ips
 
     def get_nodes_for_write(self, num_nodes):
         chosen_nodes = random.sample(self.nodes, num_nodes)
-        nodes = ({'node-id': n.node_id, 'node_ip': n.node_ip} for n in chosen_nodes)
-        return nodes
+        nodes = ({'node_id': n.node_id, 'node_ip': n.node_ip} for n in chosen_nodes)
+        return list(nodes)
