@@ -130,8 +130,8 @@ def handle_read(file_path):
     manifest = []
 
     for entry in block_entries:
-        ips = node_manager.get_ips_for_nodes(entry.nodes)
-        manifest.append({"block_id": entry.block_id, "nodes": ips})
+        ips = node_manager.get_ips_for_nodes(entry["nodes"])
+        manifest.append({"block_id": entry["block_id"], "nodes": ips})
 
     manifest = sorted(manifest)
     return responsemodels.ReadResponse(manifest)

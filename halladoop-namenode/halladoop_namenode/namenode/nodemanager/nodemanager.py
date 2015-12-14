@@ -23,6 +23,8 @@ class NodeManager():
 
     def get_ips_for_nodes(self, node_ids):
         ips = list(n.node_ip for n in self.nodes if n.node_id in node_ids)
+        if not ips:
+            ips = []
         return ips
 
     def get_nodes_for_write(self, num_nodes):
