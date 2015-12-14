@@ -11,89 +11,101 @@ lock = RLock()
 
 class VirtualFileSystem:
     def __init__(self):
-        self.root_inode = INode(config.DELIMITER, is_directory=True)
-        self.data_nodes = {}
+        self._root_inode = INode(config.DELIMITER, is_directory=True)
+        self._data_nodes = {}
 
     def add_file(self, file_path): 
-        self.__add_inode__(file_path, False) 
+        self._add_inode(file_path, False)
 
     def add_directory(self, file_path):
-        self.__add_inode__(file_path, True)
+        self._add_inode(file_path, True)
 
-    def __add_inode__(self, file_path, is_directory):
-        with lock.acquire:
-            print("made it")
-            parent_inode = self.__parentinode__(file_path)
+    def _add_inode(self, file_path, is_directory):
+        with lock:
+            parent_inode = self._parentinode(file_path)
             if not parent_inode:
-                self.add_directory(self.__parentpath__(file_path))
-                parent_inode = self.__parentinode__(file_path)
+                self.add_directory(self._parentpath(file_path))
+                parent_inode = self._parentinode(file_path)
             else:
-                self.__check_parent_inode__(parent_inode)
+                self._check_parent_inode(parent_inode)
     
-            inode = INode(self.__filename__(file_path), is_directory)
+            inode = INode(self._filename(file_path), is_directory)
             
             parent_inode.add_pointer(inode.file_name, inode)
         return inode        
 
-    def add_block_entry(self, file_path, file_block_num, data_node_id):
-        lock.acquire()
+    def add_block_entry(self, node_id, block_id):
+        file_path, block_num = self.parse_block_id(block_id)
         with lock:
-            inode = self.__get_inode__(file_path)
+            inode = self._get_inode(file_path)
             if inode and not inode.is_directory:
-                inode.add_pointer(file_block_num, data_node_id)
-                self.__add_data_node_entry__(data_node_id, file_path, file_block_num)
+                inode.add_pointer(block_num, node_id)
+                self._add_data_node_entry(node_id, file_path, block_num)
             else:
                 raise ValueError("INode at " + file_path + " either doesn't exist or isn't a file INode")
+
+    def remove_block_entry(self, node_id, block_id):
+        file_path, block_num = self.parse_block_id(block_id)
+        with lock:
+            inode = self._get_inode(file_path)
+            if inode and not inode.is_directory:
+                if block_num in inode.pointers:
+                    inode.pointers.pop(block_num, node_id)
 
     def get_blocks_for_node(self, data_node_id):
         lock.acquire()
         lock.release()
         blocks = set()
 
-        if data_node_id in self.data_nodes:
-            blocks = self.data_nodes[data_node_id]
+        if data_node_id in self._data_nodes:
+            blocks = self._data_nodes[data_node_id]
 
         return blocks
 
     def get_nodes_for_block(self, block_id):
         file_path, block_num = self.parse_block_id(block_id)
-        inode = self.__get_inode__(file_path)
+        inode = self._get_inode(file_path)
 
         nodes_with_block = set()
-        if inode and block_num in inode.pointers:
+        if block_num in inode.pointers:
             nodes_with_block.update(inode.pointers[block_num])
 
         return nodes_with_block
 
     def parse_block_id(self, block_id):
         file_name = block_id.split(config.DELIMITER)[-1]
-        number_string = ""
+        number_string = []
+
         for char in reversed(file_name):
+            file_name = file_name[:-1]
             if char.isdigit():
                 number_string.append(char)
             else:
+                file_name += char
                 break
-        return int(reversed(number_string))
+
+        block_num = ''.join(number_string[::-1])
+        return file_name, block_num
 
     def file_exists(self, file_path):
-        return self.__get_inode__(file_path) is not None
+        return self._get_inode(file_path) is not None
 
-    def __add_data_node_entry__(self, data_node_id, file_path, file_block_num):
-        if data_node_id not in self.data_nodes:
+    def _add_data_node_entry(self, data_node_id, file_path, file_block_num):
+        if data_node_id not in self._data_nodes:
             data_node_entries = set()
-            self.data_nodes[data_node_id] = data_node_entries
+            self._data_nodes[data_node_id] = data_node_entries
         else:
-            data_node_entries = self.data_nodes[data_node_id]
+            data_node_entries = self._data_nodes[data_node_id]
 
         block_id = file_path + str(file_block_num)
 
         if block_id not in data_node_entries:
             data_node_entries.add(block_id)
 
-    def __get_inode__(self, file_path):
+    def _get_inode(self, file_path):
         lock.acquire()
         lock.release()
-        current_node = self.root_inode
+        current_node = self._root_inode
         dirs = list(filter(('').__ne__, file_path.split(config.DELIMITER)))
         for dir_name in dirs:
             if current_node.is_directory:
@@ -101,27 +113,27 @@ class VirtualFileSystem:
                     current_node = current_node.pointers[dir_name]
                 else:
                     current_node = None
-                    dirs.clear() # current_node doesn't exist, file_path not valid, break loop
+                    dirs.clear()  # current_node doesn't exist, file_path not valid, break loop
             else:
                 current_node = None
-                dirs.clear() #stop loop
+                dirs.clear()  # stop loop
 
         return current_node
 
-    def __filename__(self, file_path):
+    def _filename(self, file_path):
         return file_path.split(config.DELIMITER)[-1]
 
-    def __parentinode__(self, file_path):
-        parent_path = self.__parentpath__(file_path)
-        return self.__get_inode__(parent_path)
+    def _parentinode(self, file_path):
+        parent_path = self._parentpath(file_path)
+        return self._get_inode(parent_path)
 
-    def __parentpath__(self, file_path):
+    def _parentpath(self, file_path):
         parent_dirs = []
         parent_dirs.extend(file_path.split(config.DELIMITER)[1:])
         parent_path = config.DELIMITER + config.DELIMITER.join(parent_dirs[:-1])
         return parent_path
         
-    def __check_parent_inode__(self, parent_inode):
+    def _check_parent_inode(self, parent_inode):
         if not parent_inode.is_directory:
             raise ValueError("Parent node is not a directory")  
 
