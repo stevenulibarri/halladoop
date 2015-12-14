@@ -3,6 +3,7 @@ from namenode.nodemanager import nodemanager
 from namenode.image.virtualfilesystem import VirtualFileSystem
 from namenode.image import manifestcomparator as manifests
 from namenode.image.buffer import ActionBuffer
+from namenode import config
 
 node_manager = nodemanager.NodeManager()
 vfs = VirtualFileSystem()

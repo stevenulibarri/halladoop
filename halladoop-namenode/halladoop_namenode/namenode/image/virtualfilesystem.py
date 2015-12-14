@@ -5,7 +5,7 @@ Represents the "journal" of a filesystem similarly to what you'd expect int an e
 """
 from threading import RLock
 
-from namenode.image import config
+from namenode import config
 
 lock = RLock()
 
