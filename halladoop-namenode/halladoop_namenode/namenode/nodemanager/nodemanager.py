@@ -15,3 +15,10 @@ class NodeManager():
 
     def update_node(self, node_id, available_space_mb):
         self.nodes[node_id].update(available_space_mb)
+
+    def get_ips_for_nodes(self, node_ids):
+        ips = []
+        for node_id in node_ids:
+            if node_id in self.nodes:
+                ips.append(self.nodes[node_id].node_ip)
+        return ips
