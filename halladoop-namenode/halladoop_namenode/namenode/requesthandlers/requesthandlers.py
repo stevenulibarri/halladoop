@@ -114,13 +114,13 @@ def handle_finalize(finalize_request):
 
 def handle_write(write_request):
     nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
-    node_ids = (n.node_id for n in nodes)
+    node_ids = (n['node_id'] for n in nodes)
 
     for id in node_ids:
         for block_num in range(write_request.num_blocks):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
-    nodes = sorted(nodes)
+    # nodes = sorted(nodes, key=nodes['node_id'])
     return responsemodels.WriteResponse(nodes)
 
 
@@ -130,8 +130,8 @@ def handle_read(file_path):
     manifest = []
 
     for entry in block_entries:
-        ips = node_manager.get_ips_for_nodes(entry.nodes)
-        manifest.append({"block_id": entry.block_id, "nodes": ips})
+        ips = node_manager.get_ips_for_nodes(entry["nodes"])
+        manifest.append({"block_id": entry["block_id"], "nodes": ips})
 
     manifest = sorted(manifest)
     return responsemodels.ReadResponse(manifest)
@@ -150,4 +150,4 @@ def handle_delete(file_path):
 
 
 def cluster_query():
-    return {"nodes": sorted(node_manager.nodes)}
+    return {"nodes": node_manager.nodes}
