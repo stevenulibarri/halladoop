@@ -3,8 +3,9 @@ package com.distributed_systems.halladoop.client.workers;
 import com.distributed_systems.halladoop.client.data.Operation;
 import com.distributed_systems.halladoop.client.data.WriteData;
 import com.distributed_systems.halladoop.client.data.WriteException;
-import com.distributed_systems.halladoop.client.data.WriteResponse;
 
+import com.distributed_systems.halladoop.client.data.name_node.Node;
+import com.distributed_systems.halladoop.client.data.name_node.NodeWrapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -17,6 +18,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -63,18 +65,20 @@ public class WriteWorker implements Runnable {
             int responseCode = response.getStatusLine().getStatusCode();
 
             if (responseCode >= 200 && responseCode < 300) {
-                String[] dataNodes = mapper.readValue(response.getEntity().getContent(), WriteResponse.class).getNodes();
+                Node[] dataNodes = mapper.readValue(response.getEntity().getContent(), NodeWrapper.class).getNodes();
 
-                for (String ip : dataNodes) {
-                    Socket connection = new Socket(ip, DATA_NODE_PORT);
-                    ObjectOutputStream outputStream = new ObjectOutputStream(connection.getOutputStream());
-                    ObjectInputStream inputStream = new ObjectInputStream(connection.getInputStream());
+                boolean dataNodeFinalize = true;
+                Iterator<WriteData> blockIterator = blocks.iterator();
 
-                    boolean dataNodeFinalize = true;
-                    Iterator<WriteData> blockIterator = blocks.iterator();
+                while (blockIterator.hasNext() && dataNodeFinalize) {
+                    WriteData block = blockIterator.next();
+                    List<Integer> nodes = new ArrayList<>();
 
-                    while (blockIterator.hasNext() && dataNodeFinalize) {
-                        WriteData block = blockIterator.next();
+                    for (Node node : dataNodes) {
+                        nodes.add(node.getNode_id());
+                        Socket connection = new Socket(node.getNode_ip(), DATA_NODE_PORT);
+                        ObjectOutputStream outputStream = new ObjectOutputStream(connection.getOutputStream());
+                        ObjectInputStream inputStream = new ObjectInputStream(connection.getInputStream());
 
                         outputStream.writeObject(Operation.WRITE);
                         outputStream.writeObject(block);
@@ -82,20 +86,24 @@ public class WriteWorker implements Runnable {
 
                         try {
                             dataNodeFinalize = (Boolean) inputStream.readObject();
-                            if (dataNodeFinalize) {
-                                entity = new StringEntity("{"
-                                        + "\"block_id\": \n" + block.getBlockId() + "\'"
-                                        + "}");
-
-                                uri = uriBuilder.setHost(host).setPort(port).setPath(FINALIZE).build();
-                                writePayload = new HttpPost(uri);
-                                client.execute(writePayload);
-                            }
                         } catch (ClassNotFoundException e) {
                             dataNodeFinalize = false;
                         }
+
+                        connection.close();
                     }
-                    connection.close();
+
+                    if (dataNodeFinalize) {
+                        entity = new StringEntity("{"
+                                + "\"block_id\": \n" + block.getBlockId() + "\',"
+                                + "\"nodes\": " + nodes
+                                + "}");
+
+                        uri = uriBuilder.setHost(host).setPort(port).setPath(FINALIZE).build();
+                        writePayload = new HttpPost(uri);
+                        writePayload.setEntity(entity);
+                        client.execute(writePayload);
+                    }
                 }
             } else {
                 throw new WriteException("Server responded with: " + response);
