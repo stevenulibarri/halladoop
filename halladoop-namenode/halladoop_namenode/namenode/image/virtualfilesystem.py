@@ -15,10 +15,10 @@ class VirtualFileSystem:
         self._data_nodes = {}
 
     def add_file(self, file_path): 
-        self._add_inode(file_path, False)
+        return self._add_inode(file_path, False)
 
     def add_directory(self, file_path):
-        self._add_inode(file_path, True)
+        return self._add_inode(file_path, True)
 
     def _add_inode(self, file_path, is_directory):
         with lock:
@@ -29,16 +29,36 @@ class VirtualFileSystem:
             else:
                 self._check_parent_inode(parent_inode)
     
-            inode = INode(self._filename(file_path), is_directory)
+            inode = INode(file_path, is_directory)
             
             parent_inode.add_pointer(inode.file_name, inode)
         return inode        
+
+    def _filename(self, file_path):
+        return file_path.split(config.DELIMITER)[-1]
+
+    def _parentinode(self, file_path):
+        parent_path = self._parentpath(file_path)
+        return self._get_inode(parent_path)
+
+    def _parentpath(self, file_path):
+        parent_dirs = []
+        parent_dirs.extend(file_path.split(config.DELIMITER)[1:])
+        parent_path = config.DELIMITER + config.DELIMITER.join(parent_dirs[:-1])
+        return parent_path
+
+    def _check_parent_inode(self, parent_inode):
+        if not parent_inode.is_directory:
+            raise ValueError("Parent node is not a directory")
 
     def add_block_entry(self, node_id, block_id):
         file_path, block_num = self.parse_block_id(block_id)
         with lock:
             inode = self._get_inode(file_path)
-            if inode and not inode.is_directory:
+            if not inode:
+                inode = self.add_file(file_path)
+
+            if not inode.is_directory:
                 inode.add_pointer(block_num, node_id)
                 self._add_data_node_entry(node_id, file_path, block_num)
             else:
@@ -73,7 +93,8 @@ class VirtualFileSystem:
         return nodes_with_block
 
     def parse_block_id(self, block_id):
-        file_name = block_id.split(config.DELIMITER)[-1]
+        block_id = str(block_id)
+        file_name = block_id
         number_string = []
 
         for char in reversed(file_name):
@@ -106,11 +127,14 @@ class VirtualFileSystem:
         lock.acquire()
         lock.release()
         current_node = self._root_inode
+        current_node_path = ""
         dirs = list(filter(('').__ne__, file_path.split(config.DELIMITER)))
         for dir_name in dirs:
+            dir_name = current_node_path + config.DELIMITER + dir_name
             if current_node.is_directory:
                 if dir_name in current_node.pointers:
                     current_node = current_node.pointers[dir_name]
+                    current_node_path = current_node.file_name
                 else:
                     current_node = None
                     dirs.clear()  # current_node doesn't exist, file_path not valid, break loop
@@ -120,26 +144,18 @@ class VirtualFileSystem:
 
         return current_node
 
-    def _filename(self, file_path):
-        return file_path.split(config.DELIMITER)[-1]
+    def __str__(self):
+        return self._get_string(self._root_inode, 0)
 
-    def _parentinode(self, file_path):
-        parent_path = self._parentpath(file_path)
-        return self._get_inode(parent_path)
-
-    def _parentpath(self, file_path):
-        parent_dirs = []
-        parent_dirs.extend(file_path.split(config.DELIMITER)[1:])
-        parent_path = config.DELIMITER + config.DELIMITER.join(parent_dirs[:-1])
-        return parent_path
-        
-    def _check_parent_inode(self, parent_inode):
-        if not parent_inode.is_directory:
-            raise ValueError("Parent node is not a directory")  
-
-#    def __str__(self):
-#        return self
-
+    def _get_string(self, node, space_level):
+        if not node.is_directory:
+            ret = str(" " * space_level)
+            return str(ret + str(node))
+        else:
+            ret = (" " * space_level) + str(node)
+            for child in node.pointers.values():
+                ret += "\n" + str((" " * (space_level + 1))) + str(self._get_string(child, space_level + 1))
+            return ret
 """
 A "pointer" is a dictionary for each INode such that
     INode is directory: key=child INode file name, value=child INode
@@ -163,3 +179,9 @@ class INode:
             else:
                 pointer = set([pointer_value])
                 self.pointers[pointer_key] = pointer
+
+    def __str__(self):
+        ret = "D " if self.is_directory else "F "
+        ret += self.file_name
+        ret += " " + str(self.timestamp)
+        return ret

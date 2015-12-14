@@ -57,11 +57,11 @@ def _get_delete_response(node_id, mismatched_blocks):
 
 def _get_replicate_response(node_id, mismatched_blocks):
     replicate_response_blocks = []
-
     if node_id not in buffer.replications_in_progress:
         for mismatched_block in mismatched_blocks:
             if buffer.block_exists(node_id, mismatched_block, buffer.replications_in_progress):
                 block_entry_time = buffer.replications_in_progress[node_id][mismatched_block].time_issued
+
                 logger.info("Time replicate was issued for block " + str(mismatched_block) + " on node "
                       + node_id + ": " + str(block_entry_time))
             else:
@@ -72,15 +72,19 @@ def _get_replicate_response(node_id, mismatched_blocks):
 
         extra_replicate_block = buffer.get_next_replication()
         if extra_replicate_block:
-            buffer.add(node_id, extra_replicate_block, buffer.replications_in_progress)
-            replicate_response_blocks.append(extra_replicate_block)
+            if extra_replicate_block not in vfs.get_blocks_for_node(node_id):
+                buffer.add(node_id, extra_replicate_block, buffer.replications_in_progress)
+                replicate_response_blocks.append(extra_replicate_block)
+            else:
+                buffer.replication_queue.put(extra_replicate_block)
 
 
     replicate_response = []
     for mismatched_block in replicate_response_blocks:
         mismatched_block_entry = {"block_id": mismatched_block}
         nodes_with_mismatched_block = vfs.get_nodes_for_block(mismatched_block)
-        mismatched_block_entry["nodes"] = nodemanager.get_ips_for_nodes(nodes_with_mismatched_block)
+        ips = node_manager.get_ips_for_nodes(nodes_with_mismatched_block)
+        mismatched_block_entry["nodes"] = ips
         replicate_response.append(mismatched_block_entry)
 
     return replicate_response
@@ -92,10 +96,16 @@ def handle_finalize(finalize_request):
 
     for node_id in nodes:
         buffer.remove_if_exists(node_id, block_id, buffer.replications_in_progress)
-        vfs.add_block_entry(block_id, node_id)
+        vfs.add_block_entry(node_id, block_id)
 
 def handle_write(write_request):
-    nodes = nodemanager.get_nodes_for_write(config.REPLICATION_FACTOR)
+    nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
+    node_ids = (n.node_id for n in nodes)
+
+    for id in node_ids:
+        for block_num in range(write_request.num_blocks):
+            buffer.add(id, block_num, buffer.replications_in_progress)
+
     return responsemodels.WriteResponse(nodes)
 
 def handle_read(file_path):
