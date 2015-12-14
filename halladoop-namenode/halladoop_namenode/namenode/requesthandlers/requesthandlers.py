@@ -120,7 +120,7 @@ def handle_write(write_request):
         for block_num in range(write_request.num_blocks):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
-    nodes = sorted(nodes)
+    nodes = sorted(nodes, key=nodes.node_id)
     return responsemodels.WriteResponse(nodes)
 
 
