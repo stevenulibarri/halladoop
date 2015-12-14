@@ -2,14 +2,14 @@ package com.distributed_systems.halladoop.dataNode.model;
 
 public class ReplicationResponse {
 
-	private String blockID;
+	private String block_id;
 	private String[] nodes;
 	
-	public String getBlockID() {
-		return blockID;
+	public String getBlock_id() {
+		return block_id;
 	}
-	public void setBlockID(String blockID) {
-		this.blockID = blockID;
+	public void setBlock_id(String block_id) {
+		this.block_id = block_id;
 	}
 	public String[] getNodes() {
 		return nodes;
