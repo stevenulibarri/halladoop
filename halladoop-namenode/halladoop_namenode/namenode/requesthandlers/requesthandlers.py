@@ -83,7 +83,8 @@ def _get_replicate_response(node_id, mismatched_blocks):
     for mismatched_block in replicate_response_blocks:
         mismatched_block_entry = {"block_id": mismatched_block}
         nodes_with_mismatched_block = vfs.get_nodes_for_block(mismatched_block)
-        mismatched_block_entry["nodes"] = node_manager.get_ips_for_nodes(nodes_with_mismatched_block)
+        ips = node_manager.get_ips_for_nodes(nodes_with_mismatched_block)
+        mismatched_block_entry["nodes"] = ips
         replicate_response.append(mismatched_block_entry)
 
     return replicate_response
