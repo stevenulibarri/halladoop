@@ -4,6 +4,9 @@ from namenode.image.virtualfilesystem import VirtualFileSystem
 from namenode.image import manifestcomparator as manifests
 from namenode.image.buffer import ActionBuffer
 from namenode import config
+import logging
+
+logger = logging.getLogger('namenode')
 
 node_manager = nodemanager.NodeManager()
 vfs = VirtualFileSystem()
@@ -29,8 +32,8 @@ def handle_heartbeat(heartbeat):
     delete_response_blocks = _get_delete_response(node_id, datanode_mismatch_blocks)
     replicate_response_blocks = _get_replicate_response(node_id, vfs_mismatch_blocks)
 
-    print("Datanode mismatch blocks " + str(delete_response_blocks))
-    print("VFS mismatch blocks " + str(replicate_response_blocks))
+    logger.info("Datanode mismatch blocks " + str(delete_response_blocks))
+    logger.info("VFS mismatch blocks " + str(replicate_response_blocks))
     for block in vfs_mismatch_blocks:
         vfs.remove_block_entry(node_id, block)
 
@@ -42,9 +45,9 @@ def _get_delete_response(node_id, mismatched_blocks):
     for block in mismatched_blocks:
         if buffer.block_exists(node_id, block, buffer.deletes_in_progress):
             block_entry_time = buffer.deletes_in_progress[node_id][block].time_issued
-            print("Delete was issued for block " + str(block) + " on node " + str(node_id) + ": " + str(block_entry_time))
+            logger.info("Delete was issued for block " + str(block) + " on node " + str(node_id) + ": " + str(block_entry_time))
         else:
-            print("Block " + str(block) + " needs to be deleted in node " + str(node_id))
+            logger.info("Block " + str(block) + " needs to be deleted in node " + str(node_id))
             buffer.remove_if_exists(node_id, block, buffer.queued_deletions)
             buffer.add(node_id, block, buffer.deletes_in_progress)
             vfs.remove_block_entry(node_id, block)
@@ -59,10 +62,10 @@ def _get_replicate_response(node_id, mismatched_blocks):
         for mismatched_block in mismatched_blocks:
             if buffer.block_exists(node_id, mismatched_block, buffer.replications_in_progress):
                 block_entry_time = buffer.replications_in_progress[node_id][mismatched_block].time_issued
-                print("Time replicate was issued for block " + str(mismatched_block) + " on node "
+                logger.info("Time replicate was issued for block " + str(mismatched_block) + " on node "
                       + node_id + ": " + str(block_entry_time))
             else:
-                print("Block " + str(mismatched_block) + " needs to be replicated in node " + str(node_id))
+                logger.info("Block " + str(mismatched_block) + " needs to be replicated in node " + str(node_id))
                 buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_replications)
                 buffer.add(node_id, mismatched_block, buffer.replications_in_progress)
                 replicate_response_blocks.append(mismatched_block)
