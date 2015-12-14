@@ -92,7 +92,8 @@ def handle_finalize(finalize_request):
         vfs.add_block_entry(block_id, node_id)
 
 def handle_write(write_request):
-    return responsemodels.WriteResponse(["1.1.1.1", "2.2.2.2"])
+    nodes = nodemanager.get_nodes_for_write(config.REPLICATION_FACTOR)
+    return responsemodels.WriteResponse(nodes)
 
 def handle_read(file_path):
     return responsemodels.ReadResponse([
