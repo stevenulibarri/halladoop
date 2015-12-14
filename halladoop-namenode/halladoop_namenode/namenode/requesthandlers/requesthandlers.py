@@ -150,4 +150,4 @@ def handle_delete(file_path):
 
 
 def cluster_query():
-    return {"nodes": sorted(node_manager.nodes)}
+    return {"nodes": node_manager.nodes}
