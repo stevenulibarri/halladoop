@@ -57,7 +57,7 @@ def _get_delete_response(node_id, mismatched_blocks):
             vfs.remove_block_entry(node_id, block)
             delete_response.append(block)
 
-    return delete_response
+    return sorted(delete_response)
 
 
 def _get_replicate_response(node_id, mismatched_blocks):
@@ -90,7 +90,7 @@ def _get_replicate_response(node_id, mismatched_blocks):
         mismatched_block_entry["nodes"] = ips
         replicate_response.append(mismatched_block_entry)
 
-    return replicate_response
+    return sorted(replicate_response)
 
 
 def _remove_finished_deletions(node_id, mismatched_blocks):
@@ -120,6 +120,7 @@ def handle_write(write_request):
         for block_num in range(write_request.num_blocks):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
+    nodes = sorted(nodes)
     return responsemodels.WriteResponse(nodes)
 
 
@@ -132,6 +133,7 @@ def handle_read(file_path):
         ips = node_manager.get_ips_for_nodes(entry.nodes)
         manifest.append({"block_id": entry.block_id, "nodes": ips})
 
+    manifest = sorted(manifest)
     return responsemodels.ReadResponse(manifest)
 
 
@@ -148,4 +150,4 @@ def handle_delete(file_path):
 
 
 def cluster_query():
-    return {"nodes": node_manager.nodes}
+    return {"nodes": sorted(node_manager.nodes)}
