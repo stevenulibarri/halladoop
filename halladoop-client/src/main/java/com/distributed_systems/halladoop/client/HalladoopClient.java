@@ -1,7 +1,7 @@
 package com.distributed_systems.halladoop.client;
 
-import com.distributed_systems.halladoop.workers.ReadWorker;
-import com.distributed_systems.halladoop.workers.WriteWorker;
+import com.distributed_systems.halladoop.dataNode.model.ReadWorker;
+import com.distributed_systems.halladoop.dataNode.model.WriteWorker;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;

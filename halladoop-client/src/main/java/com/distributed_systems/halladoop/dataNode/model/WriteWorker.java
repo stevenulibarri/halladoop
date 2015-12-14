@@ -1,4 +1,4 @@
-package com.distributed_systems.halladoop.workers;
+package com.distributed_systems.halladoop.dataNode.model;
 
 import static com.distributed_systems.halladoop.client.utils.FileUtils.createBlocks;
 
@@ -12,11 +12,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
 
-import com.distributed_systems.halladoop.dataNode.model.Operation;
-import com.distributed_systems.halladoop.dataNode.model.WriteData;
-import com.distributed_systems.halladoop.dataNode.model.WriteException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -82,8 +78,7 @@ public class WriteWorker implements Runnable {
                     for (Node node : dataNodes) {
                         nodes.add(node.getNode_id());
                         Socket connection = new Socket(node.getNode_ip(), DATA_NODE_PORT);
-                        GZIPOutputStream gzipOutputStream = new GZIPOutputStream(connection.getOutputStream());
-                        ObjectOutputStream outputStream = new ObjectOutputStream(gzipOutputStream);
+                        ObjectOutputStream outputStream = new ObjectOutputStream(connection.getOutputStream());
 
                         outputStream.writeObject(Operation.WRITE);
                         outputStream.flush();

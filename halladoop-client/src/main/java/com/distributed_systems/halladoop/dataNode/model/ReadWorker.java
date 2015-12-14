@@ -1,4 +1,4 @@
-package com.distributed_systems.halladoop.workers;
+package com.distributed_systems.halladoop.dataNode.model;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,9 +9,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.Callable;
-import java.util.zip.GZIPInputStream;
 
-import com.distributed_systems.halladoop.dataNode.model.Operation;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
@@ -67,8 +65,7 @@ public class ReadWorker implements Callable<File> {
                     while (current < nodes.length && nodeDown) {
                         try (Socket connection = new Socket(nodes[current], DATA_NODE_PORT)) {
                             ObjectOutputStream outputStream = new ObjectOutputStream(connection.getOutputStream());
-                            GZIPInputStream gzipInputStream = new GZIPInputStream(connection.getInputStream());
-                            ObjectInputStream inputStream = new ObjectInputStream(gzipInputStream);
+                            ObjectInputStream inputStream = new ObjectInputStream(connection.getInputStream());
 
                             outputStream.writeObject(Operation.READ);
                             outputStream.flush();
