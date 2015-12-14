@@ -31,6 +31,7 @@ def handle_heartbeat(heartbeat):
     datanode_mismatch_blocks, vfs_mismatch_blocks = manifests.check_match(node_manifest, vfs.get_blocks_for_node(node_id))
     delete_response_blocks = _get_delete_response(node_id, datanode_mismatch_blocks)
     replicate_response_blocks = _get_replicate_response(node_id, vfs_mismatch_blocks)
+    _remove_finished_deletions(node_id, datanode_mismatch_blocks)
 
     logger.info("Datanode mismatch blocks " + str(delete_response_blocks))
     logger.info("VFS mismatch blocks " + str(replicate_response_blocks))
@@ -39,7 +40,6 @@ def handle_heartbeat(heartbeat):
 
     return responsemodels.HeartbeatResponse(delete_response_blocks, replicate_response_blocks)
 
-#TODO finalize if delete is complete
 def _get_delete_response(node_id, mismatched_blocks):
     delete_response = []
     
@@ -90,6 +90,14 @@ def _get_replicate_response(node_id, mismatched_blocks):
 
     return replicate_response
 
+def _remove_finished_deletions(node_id, mismatched_blocks):
+    if node_id in buffer.deletes_in_progress:
+        blocks_in_progress = buffer.deletes_in_progress[node_id]
+
+        for mismatched_block in mismatched_blocks:
+            if mismatched_block not in blocks_in_progress:
+                buffer.deletes_in_progress[node_id].pop(mismatched_block)
+
 def handle_finalize(finalize_request):
 
     block_id = finalize_request.block_id
@@ -129,7 +137,6 @@ def handle_delete(file_path):
         node_ids = block["nodes"]
 
         for node_id in node_ids:
-            buffer.add(node_id, block_id, buffer.queued_deletions)
             vfs.remove_block_entry(node_id, block_id)
 
 def cluster_query():
