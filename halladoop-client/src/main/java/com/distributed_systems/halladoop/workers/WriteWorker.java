@@ -89,8 +89,8 @@ public class WriteWorker implements Runnable {
                         gzipOutputStream.finish();
                         outputStream.flush();
                         outputStream.writeObject(block);
-                        gzipOutputStream.finish();
                         outputStream.flush();
+                        gzipOutputStream.finish();
                         ObjectInputStream inputStream = new ObjectInputStream(connection.getInputStream());
 
 
