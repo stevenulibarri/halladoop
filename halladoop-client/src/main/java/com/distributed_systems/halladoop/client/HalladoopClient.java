@@ -38,4 +38,8 @@ public class HalladoopClient {
 
         return file.get();
     }
+
+    private void delete(String fileName) {
+
+    }
 }
