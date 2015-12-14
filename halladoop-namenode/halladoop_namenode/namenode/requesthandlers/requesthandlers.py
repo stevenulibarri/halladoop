@@ -114,13 +114,13 @@ def handle_finalize(finalize_request):
 
 def handle_write(write_request):
     nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
-    node_ids = (n.node_id for n in nodes)
+    node_ids = (n['node_id'] for n in nodes)
 
     for id in node_ids:
         for block_num in range(write_request.num_blocks):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
-    nodes = sorted(nodes)
+    # nodes = sorted(nodes)
     return responsemodels.WriteResponse(nodes)
 
 
