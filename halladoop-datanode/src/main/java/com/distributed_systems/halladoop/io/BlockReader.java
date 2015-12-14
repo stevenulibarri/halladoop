@@ -30,14 +30,17 @@ public class BlockReader implements Runnable {
 			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
 			//Operation op = mapper.readValue(getNextData(socket.getInputStream()), Operation.class);
 			Operation op = (Operation) inputStream.readObject();
+			System.out.println("Received operation " + op);
 			switch (op) {
 			case READ:
 				//ReadData readData = mapper.readValue(socket.getInputStream(), ReadData.class);
 				ReadData readData = (ReadData) inputStream.readObject();
+				System.out.println("Reading " + readData.getBlockId());
 				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 				Map<String, String> map = App.getFiles();
 				if (App.getFiles().containsKey(readData.getBlockId())) {
 					String path = App.getFiles().get(readData.getBlockId());
+					System.out.println("Reading from " + path);
 					File file = new File(path);
 					FileInputStream fileInput = new FileInputStream(file);
 					byte[] fileData = new byte[(int) file.length()];
@@ -54,20 +57,24 @@ public class BlockReader implements Runnable {
 				break;
 			case WRITE:
 				WriteData writeData = (WriteData) inputStream.readObject();
+				System.out.println("Received data for " + writeData.getBlockId());
 				try {
 					String path = App.getNextPath(writeData.getBlockId());
+					System.out.println("Writing to " + path);
 					File writeFile = new File(path);
 					writeFile.mkdirs();
 					FileOutputStream fileOutput = new FileOutputStream(writeFile + File.separator + writeData.getBlockId() + ".bin");
 					fileOutput.write(writeData.getData());
 					fileOutput.flush();
 					fileOutput.close();
-
+					
+					System.out.println("Returning true");
 					ObjectOutputStream writeOutputStream = new ObjectOutputStream(socket.getOutputStream());
 					writeOutputStream.writeObject(true);
 					writeOutputStream.flush();
 					writeOutputStream.close();
 				} catch (Exception e) {
+					System.out.println("Returning false");
 					ObjectOutputStream writeOutputStream = new ObjectOutputStream(socket.getOutputStream());
 					writeOutputStream.writeObject(false);
 					writeOutputStream.flush();

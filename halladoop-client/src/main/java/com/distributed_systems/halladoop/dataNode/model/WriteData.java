@@ -1,4 +1,4 @@
-package com.distributed_systems.halladoop.client.data;
+package com.distributed_systems.halladoop.dataNode.model;
 
 import java.io.Serializable;
 

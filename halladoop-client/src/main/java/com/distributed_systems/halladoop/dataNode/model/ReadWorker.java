@@ -1,18 +1,6 @@
-package com.distributed_systems.halladoop.client.workers;
+package com.distributed_systems.halladoop.dataNode.model;
 
-import com.distributed_systems.halladoop.client.data.Operation;
-import com.distributed_systems.halladoop.client.data.manifest.Manifest;
-import com.distributed_systems.halladoop.client.data.manifest.ManifestInfo;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.codehaus.jackson.map.ObjectMapper;
-
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,7 +10,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.Callable;
 
-import java.io.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import com.distributed_systems.halladoop.client.data.manifest.Manifest;
+import com.distributed_systems.halladoop.client.data.manifest.ManifestInfo;
 
 /**
  * Created by devin on 12/9/15.
