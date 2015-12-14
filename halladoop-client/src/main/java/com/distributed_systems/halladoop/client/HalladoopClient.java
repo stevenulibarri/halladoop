@@ -1,13 +1,14 @@
 package com.distributed_systems.halladoop.client;
 
+import com.distributed_systems.halladoop.client.workers.ReadWorker;
 import com.distributed_systems.halladoop.client.workers.WriteWorker;
 
 import java.io.File;
 
-import java.io.InputStream;
-
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by devin on 12/3/15.
@@ -31,7 +32,10 @@ public class HalladoopClient {
         workers.execute(writeWorker);
     }
 
-    public InputStream read(String fileName) {
-        return null;
+    public File read(String fileName) throws ExecutionException, InterruptedException {
+        ReadWorker readWorker = new ReadWorker(fileName, NAME_NODE_ADDRESS, PORT);
+        Future<File> file = workers.submit(readWorker);
+
+        return file.get();
     }
 }
