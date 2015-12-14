@@ -11,11 +11,11 @@ public class HeartbeatResponse {
 	public void setDelete(String[] delete) {
 		this.delete = delete;
 	}
-	public ReplicationResponse[] getReplication() {
+	public ReplicationResponse[] getReplicate() {
 		return replicate;
 	}
-	public void setReplication(ReplicationResponse[] replication) {
-		this.replicate = replication;
+	public void setReplicate(ReplicationResponse[] replicate) {
+		this.replicate = replicate;
 	}
 	
 	

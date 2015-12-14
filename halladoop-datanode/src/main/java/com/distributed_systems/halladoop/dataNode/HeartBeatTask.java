@@ -40,11 +40,10 @@ public class HeartBeatTask extends TimerTask{
 			post.setEntity(entity);
 			post.setHeader("Content-Type", "application/json");
 			HttpResponse response = client.execute(post);
-			StringWriter writer = new StringWriter();
-			//IOUtils.copy(response.getEntity().getContent(), writer);
-			//String theString = writer.toString();
-			//System.out.println(theString);
-			System.out.println(response.getEntity().getContent());
+//			StringWriter writer = new StringWriter();
+//			IOUtils.copy(response.getEntity().getContent(), writer);
+//			String theString = writer.toString();
+//			System.out.println(theString);
 			HeartbeatResponse heartbeat =  mapper.readValue(response.getEntity().getContent(), HeartbeatResponse.class);
 			for(String delete : heartbeat.getDelete()){
 				if (App.getFiles().containsKey(delete)) {
@@ -52,9 +51,9 @@ public class HeartBeatTask extends TimerTask{
 					deleteFile.delete();
 				}
 			}
-			replication: for(ReplicationResponse r : heartbeat.getReplication()){
+			replication: for(ReplicationResponse r : heartbeat.getReplicate()){
 				for(String node : r.getNodes()){
-					if(App.replicateFile(r.getBlockID(), node, PORT)){
+					if(App.replicateFile(r.getBlock_id(), node, PORT)){
 						break replication;
 					}
 				}
