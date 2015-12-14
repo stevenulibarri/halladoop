@@ -12,6 +12,7 @@ node_manager = nodemanager.NodeManager()
 vfs = VirtualFileSystem()
 buffer = ActionBuffer()
 
+
 def handle_register(registration_request):
     node_ip = registration_request.node_ip
     total_space_mb = registration_request.total_disk_space_mb
@@ -20,6 +21,7 @@ def handle_register(registration_request):
     new_id = node_manager.register_node(node_ip, total_space_mb, available_space_mb)
 
     return responsemodels.RegistrationResponse(new_id)
+
 
 def handle_heartbeat(heartbeat):
     node_id = heartbeat.node_id
@@ -40,9 +42,10 @@ def handle_heartbeat(heartbeat):
 
     return responsemodels.HeartbeatResponse(delete_response_blocks, replicate_response_blocks)
 
+
 def _get_delete_response(node_id, mismatched_blocks):
     delete_response = []
-    
+
     for block in mismatched_blocks:
         if buffer.block_exists(node_id, block, buffer.deletes_in_progress):
             block_entry_time = buffer.deletes_in_progress[node_id][block].time_issued
@@ -53,8 +56,9 @@ def _get_delete_response(node_id, mismatched_blocks):
             buffer.add(node_id, block, buffer.deletes_in_progress)
             vfs.remove_block_entry(node_id, block)
             delete_response.append(block)
-            
+
     return delete_response
+
 
 def _get_replicate_response(node_id, mismatched_blocks):
     replicate_response_blocks = []
@@ -63,8 +67,7 @@ def _get_replicate_response(node_id, mismatched_blocks):
             if buffer.block_exists(node_id, mismatched_block, buffer.replications_in_progress):
                 block_entry_time = buffer.replications_in_progress[node_id][mismatched_block].time_issued
 
-                logger.info("Time replicate was issued for block " + str(mismatched_block) + " on node "
-                      + node_id + ": " + str(block_entry_time))
+                logger.info("Time replicate was issued for block " + str(mismatched_block) + " on node " + node_id + ": " + str(block_entry_time))
             else:
                 logger.info("Block " + str(mismatched_block) + " needs to be replicated in node " + str(node_id))
                 buffer.remove_if_exists(node_id, mismatched_block, buffer.queued_replications)
@@ -79,7 +82,6 @@ def _get_replicate_response(node_id, mismatched_blocks):
             else:
                 buffer.replication_queue.put(extra_replicate_block)
 
-
     replicate_response = []
     for mismatched_block in replicate_response_blocks:
         mismatched_block_entry = {"block_id": mismatched_block}
@@ -90,6 +92,7 @@ def _get_replicate_response(node_id, mismatched_blocks):
 
     return replicate_response
 
+
 def _remove_finished_deletions(node_id, mismatched_blocks):
     if node_id in buffer.deletes_in_progress:
         blocks_in_progress = buffer.deletes_in_progress[node_id]
@@ -97,6 +100,7 @@ def _remove_finished_deletions(node_id, mismatched_blocks):
         for mismatched_block in mismatched_blocks:
             if mismatched_block not in blocks_in_progress:
                 buffer.deletes_in_progress[node_id].pop(mismatched_block)
+
 
 def handle_finalize(finalize_request):
 
@@ -107,6 +111,7 @@ def handle_finalize(finalize_request):
         buffer.remove_if_exists(node_id, block_id, buffer.replications_in_progress)
         vfs.add_block_entry(node_id, block_id)
 
+
 def handle_write(write_request):
     nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
     node_ids = (n.node_id for n in nodes)
@@ -116,6 +121,7 @@ def handle_write(write_request):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
     return responsemodels.WriteResponse(nodes)
+
 
 def handle_read(file_path):
     file = file_path[5:]
@@ -128,6 +134,7 @@ def handle_read(file_path):
 
     return responsemodels.ReadResponse(manifest)
 
+
 def handle_delete(file_path):
     true_file_path = file_path[7:]
     blocks = vfs.get_blocks_for_file(true_file_path)
@@ -139,8 +146,6 @@ def handle_delete(file_path):
         for node_id in node_ids:
             vfs.remove_block_entry(node_id, block_id)
 
+
 def cluster_query():
     return {"nodes": node_manager.nodes}
-
-def _parse_request_path(file_path):
-    pass

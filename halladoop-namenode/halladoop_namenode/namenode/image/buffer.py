@@ -5,7 +5,9 @@ image aka virtual file system
 import time
 from queue import Queue
 
+
 class ActionBuffer:
+
     def __init__(self):
         self.deletes_in_progress = {}
         self.replications_in_progress = {}
@@ -47,6 +49,8 @@ class ActionBuffer:
 
         return next_entry
 
+
 class BlockEntry:
+
     def __init__(self):
         self.time_issued = time.localtime()
