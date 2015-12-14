@@ -22,10 +22,7 @@ class NodeManager():
             raise ValueError("Node with id " + str(node_id) + " is not registered")
 
     def get_ips_for_nodes(self, node_ids):
-        ips = []
-        for node_id in node_ids:
-            if node_id in self.nodes:
-                ips.append(self.nodes[node_id].node_ip)
+        ips = list(n.node_ip for n in self.nodes if n.node_id in node_ids)
         return ips
 
     def get_nodes_for_write(self, num_nodes):
