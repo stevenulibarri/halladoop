@@ -29,8 +29,8 @@ import static com.distributed_systems.halladoop.client.utils.FileUtils.createBlo
  */
 public class WriteWorker implements Runnable {
     private static final String WRITE = "/write/";
-    private static final int DATA_NODE_PORT = 4567;
     private static final String FINALIZE = "/finalize" ;
+    private static final int DATA_NODE_PORT = 4567;
 
     private final File file;
     private final String host;
