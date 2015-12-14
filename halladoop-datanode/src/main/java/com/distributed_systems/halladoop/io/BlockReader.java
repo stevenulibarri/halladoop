@@ -51,7 +51,6 @@ public class BlockReader implements Runnable {
 					fileInput.read(fileData);
 					outputStream.writeObject(fileData);
 					fileInput.close();
-					gzipoutput.finish();
 					outputStream.flush();
 					outputStream.close();
 					//inputStream.close();
@@ -77,7 +76,6 @@ public class BlockReader implements Runnable {
 					GZIPOutputStream gzipoutputwrite = new GZIPOutputStream(socket.getOutputStream());
 					ObjectOutputStream writeOutputStream = new ObjectOutputStream(gzipoutputwrite);
 					writeOutputStream.writeObject(true);
-					gzipoutputwrite.finish();
 					writeOutputStream.flush();
 					writeOutputStream.close();
 				} catch (Exception e) {
