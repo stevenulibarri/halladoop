@@ -34,15 +34,23 @@ class VirtualFileSystem:
             parent_inode.add_pointer(inode.file_name, inode)
         return inode        
 
-    def add_block_entry(self, file_path, file_block_num, data_node_id):
-        lock.acquire()
+    def add_block_entry(self, node_id, block_id):
+        file_path, block_num = self.parse_block_id(block_id)
         with lock:
             inode = self._get_inode(file_path)
             if inode and not inode.is_directory:
-                inode.add_pointer(file_block_num, data_node_id)
-                self._add_data_node_entry(data_node_id, file_path, file_block_num)
+                inode.add_pointer(block_num, node_id)
+                self._add_data_node_entry(node_id, file_path, block_num)
             else:
                 raise ValueError("INode at " + file_path + " either doesn't exist or isn't a file INode")
+
+    def remove_block_entry(self, node_id, block_id):
+        file_path, block_num = self.parse_block_id(block_id)
+        with lock:
+            inode = self._get_inode(file_path)
+            if inode and not inode.is_directory:
+                if block_num in inode.pointers:
+                    inode.pointers.pop(block_num, node_id)
 
     def get_blocks_for_node(self, data_node_id):
         lock.acquire()
