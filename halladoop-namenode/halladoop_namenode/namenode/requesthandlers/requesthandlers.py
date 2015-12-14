@@ -115,7 +115,14 @@ def handle_read(file_path):
         ])
 
 def handle_delete(file_path):
-    pass
+    blocks = vfs.get_blocks_for_file(file_path)
+
+    for block in blocks:
+        block_id = block["block_id"]
+        node_ids = block["nodes"]
+
+        for node_id in node_ids:
+            buffer.add(node_id, block_id, buffer.queued_deletions)
 
 def cluster_query():
     return {"nodes": node_manager.nodes}
