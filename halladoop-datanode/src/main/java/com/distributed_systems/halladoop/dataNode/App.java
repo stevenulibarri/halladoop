@@ -113,14 +113,15 @@ public class App
 			readData.setBlockId(blockId);
 			stream.writeObject(readData);
 			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-			WriteData writeData = (WriteData) inputStream.readObject();
-			String path = App.getNextPath(writeData.getBlockId());
+			byte[] writeData = (byte[]) inputStream.readObject();
+			String path = App.getNextPath(blockId);
 			File writeFile = new File(path);
-			writeFile.mkdir();
+			writeFile.mkdirs();
 			FileOutputStream fileOutput = new FileOutputStream(writeFile);
-			fileOutput.write(writeData.getData());
+			fileOutput.write(writeData);
 			fileOutput.flush();
 			fileOutput.close();
+			socket.close();
 			
 			HttpClient client = HttpClients.createDefault();
 			FinalizeInfo finalize = new FinalizeInfo();
