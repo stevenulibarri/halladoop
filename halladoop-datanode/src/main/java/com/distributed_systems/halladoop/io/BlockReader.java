@@ -11,6 +11,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import com.distributed_systems.halladoop.dataNode.App;
 import com.distributed_systems.halladoop.dataNode.model.Operation;
@@ -27,7 +29,8 @@ public class BlockReader implements Runnable {
 	public void run() {
 		try {
 			//ObjectMapper mapper = new ObjectMapper();
-			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+			GZIPInputStream gzipStream = new GZIPInputStream(socket.getInputStream());
+			ObjectInputStream inputStream = new ObjectInputStream(gzipStream);
 			//Operation op = mapper.readValue(getNextData(socket.getInputStream()), Operation.class);
 			Operation op = (Operation) inputStream.readObject();
 			System.out.println("Received operation " + op);
@@ -36,7 +39,8 @@ public class BlockReader implements Runnable {
 				//ReadData readData = mapper.readValue(socket.getInputStream(), ReadData.class);
 				ReadData readData = (ReadData) inputStream.readObject();
 				System.out.println("Reading " + readData.getBlockId());
-				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+				GZIPOutputStream gzipoutput = new GZIPOutputStream(socket.getOutputStream());
+				ObjectOutputStream outputStream = new ObjectOutputStream(gzipoutput);
 				Map<String, String> map = App.getFiles();
 				if (App.getFiles().containsKey(readData.getBlockId())) {
 					String path = App.getFiles().get(readData.getBlockId());
@@ -69,7 +73,8 @@ public class BlockReader implements Runnable {
 					fileOutput.close();
 					
 					System.out.println("Returning true");
-					ObjectOutputStream writeOutputStream = new ObjectOutputStream(socket.getOutputStream());
+					GZIPOutputStream gzipoutputwrite = new GZIPOutputStream(socket.getOutputStream());
+					ObjectOutputStream writeOutputStream = new ObjectOutputStream(gzipoutputwrite);
 					writeOutputStream.writeObject(true);
 					writeOutputStream.flush();
 					writeOutputStream.close();
