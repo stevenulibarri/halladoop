@@ -3,18 +3,21 @@ Represents the "journal" of a filesystem similarly to what you'd expect int an e
 #TODO
   - timestamps
 """
+import time
 from threading import RLock
 
 from namenode import config
 
 lock = RLock()
 
+
 class VirtualFileSystem:
+
     def __init__(self):
         self._root_inode = INode(config.DELIMITER, is_directory=True)
         self._data_nodes = {}
 
-    def add_file(self, file_path): 
+    def add_file(self, file_path):
         return self._add_inode(file_path, False)
 
     def add_directory(self, file_path):
@@ -28,11 +31,11 @@ class VirtualFileSystem:
                 parent_inode = self._parentinode(file_path)
             else:
                 self._check_parent_inode(parent_inode)
-    
+
             inode = INode(file_path, is_directory)
-            
+
             parent_inode.add_pointer(inode.file_name, inode)
-        return inode        
+        return inode
 
     def _filename(self, file_path):
         return file_path.split(config.DELIMITER)[-1]
@@ -91,6 +94,16 @@ class VirtualFileSystem:
             nodes_with_block.update(inode.pointers[block_num])
 
         return nodes_with_block
+
+    def get_blocks_for_file(self, file_path):
+        inode = self._get_inode(file_path)
+        blocks = []
+
+        if inode and inode.is_directory:
+            for block_num, node_ids in inode.pointers.items():
+                entry = {"block_id": file_path + str(block_num)}
+                entry["nodes"] = node_ids
+                blocks.append(entry)
 
     def parse_block_id(self, block_id):
         block_id = str(block_id)
@@ -161,11 +174,14 @@ A "pointer" is a dictionary for each INode such that
     INode is directory: key=child INode file name, value=child INode
     INode is not directory: key=block number, value=a DataNodePointer
 """
+
+
 class INode:
-    def __init__(self, file_name, is_directory=True, **pointers): 
+
+    def __init__(self, file_name, is_directory=True, **pointers):
         self.file_name = file_name
         self.is_directory = is_directory
-        self.timestamp = None #TODO
+        self.timestamp = time.localtime()
         self.pointers = pointers
 
     def add_pointer(self, pointer_key, pointer_value):
