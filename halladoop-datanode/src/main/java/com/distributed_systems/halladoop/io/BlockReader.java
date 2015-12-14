@@ -1,6 +1,5 @@
 package com.distributed_systems.halladoop.io;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,8 +11,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Map;
-
-import org.codehaus.jackson.map.ObjectMapper;
 
 import com.distributed_systems.halladoop.dataNode.App;
 import com.distributed_systems.halladoop.dataNode.model.Operation;
@@ -57,7 +54,6 @@ public class BlockReader implements Runnable {
 				break;
 			case WRITE:
 				WriteData writeData = (WriteData) inputStream.readObject();
-				//WriteData writeData = mapper.readValue(socket.getInputStream(), WriteData.class);
 				try {
 					String path = App.getNextPath(writeData.getBlockId());
 					File writeFile = new File(path);
@@ -76,6 +72,7 @@ public class BlockReader implements Runnable {
 					writeOutputStream.writeObject(false);
 					writeOutputStream.flush();
 					writeOutputStream.close();
+					e.printStackTrace();
 				}
 				break;
 			case DELETE:
