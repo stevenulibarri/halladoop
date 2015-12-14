@@ -90,7 +90,7 @@ def _get_replicate_response(node_id, mismatched_blocks):
         mismatched_block_entry["nodes"] = ips
         replicate_response.append(mismatched_block_entry)
 
-    return sorted(replicate_response)
+    return sorted(replicate_response, key=lambda response: response["block_id"])
 
 
 def _remove_finished_deletions(node_id, mismatched_blocks):
@@ -135,7 +135,6 @@ def handle_read(file_path):
 
     manifest = sorted(manifest)
     return responsemodels.ReadResponse(manifest)
-
 
 def handle_delete(file_path):
     true_file_path = file_path[7:]
