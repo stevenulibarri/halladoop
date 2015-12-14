@@ -39,6 +39,7 @@ def handle_heartbeat(heartbeat):
 
     return responsemodels.HeartbeatResponse(delete_response_blocks, replicate_response_blocks)
 
+#TODO finalize if delete is complete
 def _get_delete_response(node_id, mismatched_blocks):
     delete_response = []
     
@@ -120,7 +121,8 @@ def handle_read(file_path):
     return responsemodels.ReadResponse(manifest)
 
 def handle_delete(file_path):
-    blocks = vfs.get_blocks_for_file(file_path)
+    true_file_path = file_path[7:]
+    blocks = vfs.get_blocks_for_file(true_file_path)
 
     for block in blocks:
         block_id = block["block_id"]
@@ -128,6 +130,7 @@ def handle_delete(file_path):
 
         for node_id in node_ids:
             buffer.add(node_id, block_id, buffer.queued_deletions)
+            vfs.remove_block_entry(node_id, block_id)
 
 def cluster_query():
     return {"nodes": node_manager.nodes}
