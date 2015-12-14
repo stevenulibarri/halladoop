@@ -152,7 +152,11 @@
   * **Content:**
    ```javascript
   {
-    "nodes": ["1.1.1.1", "1.2.3.4", "4.4.4.4"]
+    "nodes": [
+      {"node_id": 1, "node_ip": "1.1.1.1"},
+      {"node_id": 2, "node_ip": "2.2.2.2"},
+      {"node_id": 3, "node_ip": "3.3.3.3"}
+    ]
   }
   ```
 

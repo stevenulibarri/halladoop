@@ -99,7 +99,7 @@ def handle_finalize(finalize_request):
         vfs.add_block_entry(node_id, block_id)
 
 def handle_write(write_request):
-    nodes = nodemanager.get_nodes_for_write(config.REPLICATION_FACTOR)
+    nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
     return responsemodels.WriteResponse(nodes)
 
 def handle_read(file_path):
