@@ -83,7 +83,13 @@ def _get_replicate_response(node_id, mismatched_blocks):
     return replicate_response
 
 def handle_finalize(finalize_request):
-    pass
+
+    block_id = finalize_request.block_id
+    nodes = finalize_request.nodes
+
+    for node_id in nodes:
+        buffer.remove_if_exists(node_id, block_id, buffer.replications_in_progress)
+        vfs.add_block_entry(block_id, node_id)
 
 def handle_write(write_request):
     return responsemodels.WriteResponse(["1.1.1.1", "2.2.2.2"])
