@@ -11,7 +11,7 @@
 ![writes](http://files.stevenulibarri.com/halladoop_docs/write.png)
 
 **Reads**
-![reads](http://files.stevenulibarri.com/halladoop_docs/reads.png)
+![reads](http://files.stevenulibarri.com/halladoop_docs/read.png)
 
 **Heartbeats**
 ![heartbeats](http://files.stevenulibarri.com/halladoop_docs/heartbeat.png)
