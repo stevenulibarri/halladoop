@@ -7,13 +7,13 @@
   File returned = doop.read(path); //Gets the first replicas of the blocks and builds your file and returns it
   ```
 # Process Diagrams
-**Writes**
+## Writes
 ![writes](http://files.stevenulibarri.com/halladoop_docs/write.png)
 
-**Reads**
+##Reads
 ![reads](http://files.stevenulibarri.com/halladoop_docs/read.png)
 
-**Heartbeats**
+##Heartbeats
 ![heartbeats](http://files.stevenulibarri.com/halladoop_docs/heartbeat.png)
 
 # Namenode Rest Api
