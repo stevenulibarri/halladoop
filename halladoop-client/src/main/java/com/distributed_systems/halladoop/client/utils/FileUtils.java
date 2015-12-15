@@ -1,11 +1,10 @@
 package com.distributed_systems.halladoop.client.utils;
 
 import com.distributed_systems.halladoop.client.HalladoopClient;
-import com.distributed_systems.halladoop.client.data.WriteData;
+import com.distributed_systems.halladoop.dataNode.model.WriteData;
 
 import java.io.File;
 import java.io.FileInputStream;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;

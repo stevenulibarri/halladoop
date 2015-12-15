@@ -1,10 +1,9 @@
 package com.distributed_systems.halladoop.client;
 
-import com.distributed_systems.halladoop.client.workers.ReadWorker;
-import com.distributed_systems.halladoop.client.workers.WriteWorker;
+import com.distributed_systems.halladoop.dataNode.model.ReadWorker;
+import com.distributed_systems.halladoop.dataNode.model.WriteWorker;
 
 import java.io.File;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,5 +36,9 @@ public class HalladoopClient {
         Future<File> file = workers.submit(readWorker);
 
         return file.get();
+    }
+
+    private void delete(String fileName) {
+
     }
 }

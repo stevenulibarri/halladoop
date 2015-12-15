@@ -24,7 +24,6 @@ import com.distributed_systems.halladoop.dataNode.model.Operation;
 import com.distributed_systems.halladoop.dataNode.model.ReadData;
 import com.distributed_systems.halladoop.dataNode.model.RegisterInfo;
 import com.distributed_systems.halladoop.dataNode.model.RegisterResponse;
-import com.distributed_systems.halladoop.dataNode.model.WriteData;
 import com.distributed_systems.halladoop.io.BlockReader;
 
 
@@ -40,6 +39,7 @@ public class App
 	private static String corePath;
 	private static int nodeID;
 	private static final int FILES_PER_DIRECTORY = 20;
+	private static long HEARTBEAT_MILLIS;
 	private static int filesInDirectory = 0;
 	private static long directoryNumber;
 	private static Map<String, String> directoryMap = new HashMap<String, String>();
@@ -49,6 +49,7 @@ public class App
     {
     	corePath = args[0]; //Get from command arg
     	String ip = args[1]; //Also get from command args to circumvent complicated ip issues
+    	HEARTBEAT_MILLIS = Long.parseLong(args[2]);
 		try(ServerSocket server = new ServerSocket(4567)){
 			HttpClient client = HttpClients.createDefault();
 			File everything = new File(corePath);
@@ -71,7 +72,7 @@ public class App
 			RegisterResponse rr = mapper.readValue(response.getEntity().getContent(), RegisterResponse.class);
 			nodeID = rr.getnode_id();
 			Timer timer = new Timer();
-			timer.schedule(new HeartBeatTask(), 0, 300000);
+			timer.schedule(new HeartBeatTask(), 0, HEARTBEAT_MILLIS);
 			while(true){
 				Socket socket = server.accept();
 				Thread t = new Thread(new BlockReader(socket));
@@ -105,6 +106,7 @@ public class App
     
     public static boolean replicateFile(String blockId, String nodeIp, int nodePort){
     	try {
+    		System.out.println(nodeIp + " " + nodePort);
 			Socket socket = new Socket(nodeIp, nodePort);
 			Operation operation = Operation.READ;
 			ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
