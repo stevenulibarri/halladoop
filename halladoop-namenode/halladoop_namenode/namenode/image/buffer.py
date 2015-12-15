@@ -49,6 +49,19 @@ class ActionBuffer:
 
         return next_entry
 
+    def deletions_in_progress_str(self):
+        return self._x_in_progress_str(self.deletes_in_progress)
+
+    def replications_in_progress_str(self):
+        return self._x_in_progress_str(self.replications_in_progress)
+
+    def _x_in_progress_str(self, buffer_dict):
+        entries = []
+        for node_id, value_dict in buffer_dict.items():
+            file_paths = []
+            file_paths.extend(value_dict.keys())
+            entries.append({"node_id": node_id, "files": file_paths})
+        return entries
 
 class BlockEntry:
 
