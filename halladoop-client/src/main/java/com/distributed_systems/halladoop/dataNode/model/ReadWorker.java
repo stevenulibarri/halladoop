@@ -31,11 +31,13 @@ public class ReadWorker implements Callable<File> {
     private final String fileName;
     private final String host;
     private final int port;
-
-    public ReadWorker(String fileName, String host, int port) {
+    private final String destination;
+    
+    public ReadWorker(String fileName, String host, int port, String destination) {
         this.host = host;
         this.port = port;
         this.fileName = fileName;
+        this.destination = destination;
     }
 
     @Override
@@ -45,7 +47,7 @@ public class ReadWorker implements Callable<File> {
         URIBuilder uriBuilder = new URIBuilder();
 
         try {
-            URI uri = uriBuilder.setHost(host).setPort(port)
+            URI uri = uriBuilder.setScheme("http").setHost(host).setPort(port)
                     .setPath(READ + fileName).build();
 
             HttpGet get = new HttpGet(uri);
@@ -53,7 +55,7 @@ public class ReadWorker implements Callable<File> {
 
             if (response.getStatusLine().getStatusCode() != 500) {
 
-                FileOutputStream output = new FileOutputStream(fileName, true);
+                FileOutputStream output = new FileOutputStream(destination, true);
                 Manifest manifest = mapper.readValue(response.getEntity().getContent(), Manifest.class);
                 ManifestInfo[] manifestInfo = manifest.getManifest();
 
@@ -65,10 +67,11 @@ public class ReadWorker implements Callable<File> {
                     while (current < nodes.length && nodeDown) {
                         try (Socket connection = new Socket(nodes[current], DATA_NODE_PORT)) {
                             ObjectOutputStream outputStream = new ObjectOutputStream(connection.getOutputStream());
-                            ObjectInputStream inputStream = new ObjectInputStream(connection.getInputStream());
 
                             outputStream.writeObject(Operation.READ);
                             outputStream.flush();
+
+                            ObjectInputStream inputStream = new ObjectInputStream(connection.getInputStream());
 
                             byte[] block = (byte[]) inputStream.readObject();
                             output.write(block);
@@ -81,6 +84,8 @@ public class ReadWorker implements Callable<File> {
                         }
                     }
                 }
+                output.flush();
+                output.close();
             } else {
                 throw new Exception("The server returned with a 500");
             }

@@ -31,8 +31,8 @@ public class HalladoopClient {
         workers.execute(writeWorker);
     }
 
-    public File read(String fileName) throws ExecutionException, InterruptedException {
-        ReadWorker readWorker = new ReadWorker(fileName, NAME_NODE_ADDRESS, PORT);
+    public File read(String fileName, String destination) throws ExecutionException, InterruptedException {
+        ReadWorker readWorker = new ReadWorker(fileName, NAME_NODE_ADDRESS, PORT, destination);
         Future<File> file = workers.submit(readWorker);
 
         return file.get();
