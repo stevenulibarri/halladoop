@@ -134,6 +134,7 @@ def handle_write(write_request):
 
 def handle_read(file_path):
     file = file_path[5:]
+    logger.info("file:" + file)
     block_entries = vfs.get_blocks_for_file(file)
     manifest = []
 
