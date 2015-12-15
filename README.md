@@ -1,3 +1,13 @@
+**Simple Hello World**
+
+write(String fileName, File file)
+File read(String fileName)
+File file = new File(path); //Can be as big as you want
+HalladoopClient doop = new HalladoopClient(nameNodeAddress, 8080);
+doop.write(fileName, path); //Breaks it into many chunks and replicates 3 times
+File returned = doop.read(path); //Gets the first replicas of the blocks and builds your file and returns it
+
+
 **Register**
 ----
   - Registers a dataNode with the nameNode.
