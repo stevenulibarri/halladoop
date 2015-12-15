@@ -20,9 +20,10 @@ public class FileUtils {
 
         try (FileInputStream inputStream = new FileInputStream(file)) {
             FileChannel channel = inputStream.getChannel();
-            ByteBuffer buffer = ByteBuffer.allocate(HalladoopClient.BLOCK_SIZE);
+            int filesize = (int) (file.length() < HalladoopClient.BLOCK_SIZE ? file.length() : HalladoopClient.BLOCK_SIZE);
+            ByteBuffer buffer = ByteBuffer.allocate(filesize);
 
-            byte[] blockData = new byte[HalladoopClient.BLOCK_SIZE];
+            byte[] blockData = new byte[filesize];
             int blockCount = 0;
 
             while (channel.read(buffer) > 0) {
@@ -35,7 +36,7 @@ public class FileUtils {
 
                 buffer.clear();
 
-                String blockId = file.getName() + "-" + blockCount;
+                String blockId = "/" + file.getName() + "-" + blockCount;
                 WriteData dataBlock = new WriteData(blockData, blockId);
                 blocks.add(dataBlock);
 

@@ -7,9 +7,9 @@ import java.io.*;
  */
 public class driver {
     public static void main(String[] args) throws IOException {
-        File file = new File("C:\\test\\file-1.bin");
+        File file = new File("C:\\test\\kernel7.img");
 
         HalladoopClient client = new HalladoopClient("104.236.162.28", 8080);
-        client.write(file);
+        client.write("test/kernel7.img", file);
     }
 }

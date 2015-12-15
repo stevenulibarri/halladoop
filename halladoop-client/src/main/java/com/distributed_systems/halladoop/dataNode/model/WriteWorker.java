@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -20,6 +24,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import spark.utils.IOUtils;
 
 import com.distributed_systems.halladoop.client.data.name_node.Node;
 import com.distributed_systems.halladoop.client.data.name_node.NodeWrapper;
@@ -29,7 +35,7 @@ import com.distributed_systems.halladoop.client.data.name_node.NodeWrapper;
  */
 public class WriteWorker implements Runnable {
     private static final String WRITE = "/write/";
-    private static final String FINALIZE = "/finalize" ;
+    private static final String FINALIZE = "/finalize/" ;
     private static final int DATA_NODE_PORT = 4567;
 
     private final File file;
@@ -99,18 +105,25 @@ public class WriteWorker implements Runnable {
                     }
 
                     if (dataNodeFinalize) {
-                        entity = new StringEntity("{"
-                                + "\"block_id\": \n" + block.getBlockId() + "\',"
-                                + "\"nodes\": " + nodes
-                                + "}");
-
+                    	ObjectMapper mapper2 =  new ObjectMapper();
+                    	String data = mapper2.writeValueAsString(new FinalizeInfo(block.getBlockId(), nodes));
+                        entity = new StringEntity(data);
+                        entity.setContentType("application/json");
                         uri = uriBuilder.setHost(host).setPort(port).setPath(FINALIZE).build();
                         writePayload = new HttpPost(uri);
                         writePayload.setEntity(entity);
-                        client.execute(writePayload);
+                        HttpResponse response2 = client.execute(writePayload);
+            			StringWriter writer = new StringWriter();
+            			IOUtils.copy(response2.getEntity().getContent(), writer);
+            			String theString = writer.toString();
+            			System.out.println(theString);
                     }
                 }
             } else {
+            	StringWriter writer = new StringWriter();
+    			IOUtils.copy(response.getEntity().getContent(), writer);
+    			String theString = writer.toString();
+    			System.out.println(theString);
                 throw new WriteException("Server responded with: " + response);
             }
         } catch (IOException e) {
