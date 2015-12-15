@@ -1,3 +1,4 @@
+# Using the client
 **Simple Hello World**
   ``` java
   File file = new File(path); //Can be as big as you want
@@ -5,7 +6,17 @@
   doop.write(fileName, path); //Breaks it into many chunks and replicates 3 times
   File returned = doop.read(path); //Gets the first replicas of the blocks and builds your file and returns it
   ```
+# Process Diagrams
+**Writes**
+![writes](http://files.stevenulibarri.com/halladoop_docs/write.png)
 
+**Reads**
+![reads](http://files.stevenulibarri.com/halladoop_docs/reads.png)
+
+**Heartbeats**
+![heartbeats](http://files.stevenulibarri.com/halladoop_docs/heartbeat.png)
+
+# Namenode Rest Api
 **Register**
 ----
   - Registers a dataNode with the nameNode.
