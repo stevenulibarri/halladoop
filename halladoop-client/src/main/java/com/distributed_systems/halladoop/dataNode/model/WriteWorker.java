@@ -39,10 +39,12 @@ public class WriteWorker implements Runnable {
     private static final int DATA_NODE_PORT = 4567;
 
     private final File file;
+    private final String fileName;
     private final String host;
     private final int port;
 
-    public WriteWorker(File file, String host, int port) {
+    public WriteWorker(String fileName, File file, String host, int port) {
+        this.fileName = fileName;
         this.file = file;
         this.host = host;
         this.port = port;
@@ -62,7 +64,7 @@ public class WriteWorker implements Runnable {
             List<WriteData> blocks = createBlocks(file);
 
             String a  ="{" +
-                    "\"file_path\": \"/" + file.getName() + "\","
+                    "\"file_path\": \"/" + this.fileName + "\","
                     + "\"num_blocks\": \"" + blocks.size()
                     + "\"}";
             StringEntity entity = new StringEntity(a);

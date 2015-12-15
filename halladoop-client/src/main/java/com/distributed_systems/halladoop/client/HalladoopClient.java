@@ -26,8 +26,8 @@ public class HalladoopClient {
         this.workers = Executors.newFixedThreadPool(cores);
     }
 
-    public void write(File file) {
-        WriteWorker writeWorker = new WriteWorker(file, NAME_NODE_ADDRESS, PORT);
+    public void write(String fileName, File file) {
+        WriteWorker writeWorker = new WriteWorker(fileName, file, NAME_NODE_ADDRESS, PORT);
         workers.execute(writeWorker);
     }
 

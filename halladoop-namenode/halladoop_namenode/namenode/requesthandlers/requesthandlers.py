@@ -12,8 +12,8 @@ node_manager = nodemanager.NodeManager()
 vfs = VirtualFileSystem()
 buffer = ActionBuffer()
 
-
 def handle_register(registration_request):
+    logger.info("Registering from " + str(registration_request.node_ip))
     node_ip = registration_request.node_ip
     total_space_mb = registration_request.total_disk_space_mb
     available_space_mb = registration_request.available_disk_space_mb
@@ -24,6 +24,10 @@ def handle_register(registration_request):
 
 
 def handle_heartbeat(heartbeat):
+    logger.info("Heartbeat from " + str(heartbeat.node_id))
+    logger.info("Heartbeat manifest " + str(heartbeat.block_manifest))
+    logger.info("Deletes in progress " + str(buffer.deletes_in_progress))
+    logger.info("Replications in progress " + str(buffer.replications_in_progress))
     node_id = heartbeat.node_id
     available_disk_space_mb = heartbeat.available_disk_space_mb
     node_manifest = heartbeat.block_manifest
@@ -90,7 +94,7 @@ def _get_replicate_response(node_id, mismatched_blocks):
         mismatched_block_entry["nodes"] = ips
         replicate_response.append(mismatched_block_entry)
 
-    return sorted(replicate_response)
+    return sorted(replicate_response, key=lambda response: response["block_id"])
 
 
 def _remove_finished_deletions(node_id, mismatched_blocks):
@@ -103,7 +107,8 @@ def _remove_finished_deletions(node_id, mismatched_blocks):
 
 
 def handle_finalize(finalize_request):
-
+    logger.info("Finalize request received, block_id: " + str(finalize_request.block_id))
+    logger.info("Finalize request received, nodes: " + str(finalize_request.nodes))
     block_id = finalize_request.block_id
     nodes = finalize_request.nodes
 
@@ -113,6 +118,8 @@ def handle_finalize(finalize_request):
 
 
 def handle_write(write_request):
+    logger.info("Received write request, file_path" + str(write_request.file_path))
+    logger.info("Received write request, num_blocks" + str(write_request.num_blocks))
     nodes = node_manager.get_nodes_for_write(config.REPLICATION_FACTOR)
     node_ids = (n['node_id'] for n in nodes)
 
@@ -120,7 +127,8 @@ def handle_write(write_request):
         for block_num in range(write_request.num_blocks):
             buffer.add(id, block_num, buffer.replications_in_progress)
 
-    # nodes = sorted(nodes, key=nodes['node_id'])
+    logger.info("Sending write response: " + str(node_ids))
+
     return responsemodels.WriteResponse(nodes)
 
 
@@ -135,7 +143,6 @@ def handle_read(file_path):
 
     manifest = sorted(manifest)
     return responsemodels.ReadResponse(manifest)
-
 
 def handle_delete(file_path):
     true_file_path = file_path[7:]
