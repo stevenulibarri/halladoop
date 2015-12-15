@@ -26,8 +26,8 @@ def handle_register(registration_request):
 def handle_heartbeat(heartbeat):
     logger.info("Heartbeat from " + str(heartbeat.node_id))
     logger.info("Heartbeat manifest " + str(heartbeat.block_manifest))
-    logger.info("Deletes in progress " + str(buffer.deletes_in_progress))
-    logger.info("Replications in progress " + str(buffer.replications_in_progress))
+    logger.info("Deletes in progress " + str(buffer.deletions_in_progress_str()))
+    logger.info("Replications in progress " + str(buffer.replications_in_progress_str()))
     node_id = heartbeat.node_id
     available_disk_space_mb = heartbeat.available_disk_space_mb
     node_manifest = heartbeat.block_manifest
@@ -125,7 +125,8 @@ def handle_write(write_request):
 
     for id in node_ids:
         for block_num in range(write_request.num_blocks):
-            buffer.add(id, block_num, buffer.replications_in_progress)
+            block_id = write_request.file_path + str(block_num)
+            buffer.add(id, block_id, buffer.replications_in_progress)
 
     logger.info("Sending write response: " + str(node_ids))
 
